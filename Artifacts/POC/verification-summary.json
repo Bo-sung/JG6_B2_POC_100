@@ -1,0 +1,326 @@
+{
+  "integration-results": {
+    "running": false,
+    "passed": true,
+    "stage": "complete",
+    "data": "ARENA_DATA_PASS: 100 cards / 20 unique abilities × 5 / 5 distinct shuffle sets / 7 patterns",
+    "error": "",
+    "telemetry": "C:/Users/Krafton/AppData/LocalLow/DefaultCompany/JG6_B2_POC_100\\Telemetry\\20261107-141452-b0562d90.jsonl",
+    "frameStart": 30665,
+    "frameEnd": 43176,
+    "deathsObserved": 101,
+    "lifeEvents": 253,
+    "endEvents": 1,
+    "exhaustionDeaths": 100,
+    "exhaustionEndEvents": 1,
+    "abilities": [
+      {
+        "id": "A01",
+        "runtime": "A01Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 2,
+        "bossDamage": 63.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A02",
+        "runtime": "A02Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 45.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A03",
+        "runtime": "A03Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 2,
+        "bossDamage": 70.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A04",
+        "runtime": "A04Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 5,
+        "bossDamage": 150.0,
+        "displacement": 2.885000228881836
+      },
+      {
+        "id": "A05",
+        "runtime": "A05Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": true,
+        "effectPeak": 1,
+        "bossDamage": 80.0,
+        "displacement": 6.6577301025390625
+      },
+      {
+        "id": "A06",
+        "runtime": "A06Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 65.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A07",
+        "runtime": "A07Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 60.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A08",
+        "runtime": "A08Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 70.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A09",
+        "runtime": "A09Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 2,
+        "bossDamage": 68.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A10",
+        "runtime": "A10Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 2,
+        "bossDamage": 43.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A11",
+        "runtime": "A11Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": true,
+        "physicalBlocked": false,
+        "effectPeak": 0,
+        "bossDamage": 0.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A12",
+        "runtime": "A12Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 75.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A13",
+        "runtime": "A13Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 90.0,
+        "displacement": 11.068617820739746
+      },
+      {
+        "id": "A14",
+        "runtime": "A14Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 65.0,
+        "displacement": 0.035039424896240234
+      },
+      {
+        "id": "A15",
+        "runtime": "A15Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 2,
+        "bossDamage": 60.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A16",
+        "runtime": "A16Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 150.0,
+        "displacement": 11.600052833557129
+      },
+      {
+        "id": "A17",
+        "runtime": "A17Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 40.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A18",
+        "runtime": "A18Runtime",
+        "active": true,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 1,
+        "bossDamage": 95.0,
+        "displacement": 0.03500008583068848
+      },
+      {
+        "id": "A19",
+        "runtime": "A19Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 0,
+        "bossDamage": 55.0,
+        "displacement": 0.03500032424926758
+      },
+      {
+        "id": "A20",
+        "runtime": "A20Runtime",
+        "active": false,
+        "triggered": true,
+        "magicBlocked": false,
+        "physicalBlocked": false,
+        "effectPeak": 0,
+        "bossDamage": 0.0,
+        "displacement": 14.100044250488281
+      }
+    ],
+    "patterns": [
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07"
+    ],
+    "exhaustion": true,
+    "simultaneousVictory": true,
+    "cleanup": true,
+    "hpPersistent": true,
+    "passiveSkillGated": true
+  },
+  "ability-flaws-results": {
+    "passed": true,
+    "verified": [
+      "A01 safe swing + re-entry self hit",
+      "A15 delayed pool escaped while damaging boss",
+      "A15 staying in pool causes Magic self death",
+      "A19 fatal high landing pays boss damage before Fall death",
+      "A07 forward launch with boss behind crosses owner",
+      "A14 giant ceiling contact classified Ceiling",
+      "A02 dash wall impact classified Wall",
+      "A20 phase dash passes through floor and falls"
+    ],
+    "error": ""
+  },
+  "boss-evasion-results": {
+    "avoided": [
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07"
+    ],
+    "passed": true,
+    "error": ""
+  },
+  "boss-links-results": {
+    "passed": true,
+    "phaseOneNoFollowup": true,
+    "observed": [
+      "B01→B02",
+      "B02→B04",
+      "B05→B03"
+    ],
+    "error": ""
+  },
+  "input-results": {
+    "moveD": true,
+    "jumpSpace": true,
+    "dashShift": true,
+    "attackJ": true,
+    "attackLMB": true,
+    "skillK": true,
+    "skillRMB": true,
+    "passiveSkillIgnored": true,
+    "resultOpened": true,
+    "submitRestart": true
+  },
+  "entry-results": {
+    "preloadToTitle": true,
+    "titleSubmitToArena": true,
+    "initialLives": 100
+  },
+  "telemetry": {
+    "passed": true,
+    "rows": 163,
+    "lifeRows": 128,
+    "requiredFields": [
+      "abilityId",
+      "bossDamage",
+      "bossPatternAtDeath",
+      "deathCause",
+      "deckSeed",
+      "lifeId",
+      "lifeIndex",
+      "position",
+      "source",
+      "survivalSeconds",
+      "time"
+    ]
+  },
+  "passed": true
+}

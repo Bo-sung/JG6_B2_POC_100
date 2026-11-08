@@ -21,6 +21,8 @@ public sealed class TelemetryRecorder : MonoBehaviour
         GameEvents.SceneChanged += OnSceneChanged;
         GameEvents.UpgradeGranted += OnUpgradeGranted;
         GameEvents.PanelVisibility += OnPanelVisibility;
+        GameEvents.Death += OnDeath;
+        GameEvents.BattleEnded += OnBattleEnded;
     }
 
     void OnDisable()
@@ -30,6 +32,8 @@ public sealed class TelemetryRecorder : MonoBehaviour
         GameEvents.SceneChanged -= OnSceneChanged;
         GameEvents.UpgradeGranted -= OnUpgradeGranted;
         GameEvents.PanelVisibility -= OnPanelVisibility;
+        GameEvents.Death -= OnDeath;
+        GameEvents.BattleEnded -= OnBattleEnded;
     }
 
     void OnRunStarted(GameEvents.RunInfo _info)
@@ -55,5 +59,15 @@ public sealed class TelemetryRecorder : MonoBehaviour
     void OnPanelVisibility(GameEvents.PanelInfo _info)
     {
         TelemetryLog.Write(TelemetryEvents.PANEL_VISIBILITY, TelemetryPayload.Panel(_info));
+    }
+
+    void OnDeath(GameEvents.DeathInfo _info)
+    {
+        TelemetryLog.Write(TelemetryEvents.LIFE_END, TelemetryPayload.Life(_info));
+    }
+
+    void OnBattleEnded(GameEvents.BattleEndInfo _info)
+    {
+        TelemetryLog.WriteSummary("arena_result", TelemetryPayload.Battle(_info));
     }
 }

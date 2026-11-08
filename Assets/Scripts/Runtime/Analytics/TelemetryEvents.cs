@@ -11,6 +11,7 @@ public static class TelemetryEvents
     public const string SCENE_CHANGE = "scene_change";
     public const string UPGRADE_GRANTED = "upgrade_granted";
     public const string PANEL_VISIBILITY = "panel_visibility";
+    public const string LIFE_END = "life_end";
 }
 
 // payload 자료형은 [Serializable] 구조체로 둔다(JsonUtility는 익명 타입을 직렬화하지 않는다).
@@ -68,6 +69,26 @@ public struct TelemetryPosition
 public static class TelemetryPayload
 {
     const float CENTIMETERS_PER_METER = 100f;
+
+    public static LifePayload Life(GameEvents.DeathInfo _info)
+    {
+        return new LifePayload
+        {
+            lifeIndex = _info.lifeIndex, lifeId = _info.lifeId, abilityId = _info.abilityId,
+            survivalSeconds = _info.survivalSeconds, bossDamage = _info.bossDamage,
+            deathCause = _info.deathCause, source = _info.source, bossPatternAtDeath = _info.bossPatternAtDeath,
+            deckSeed = _info.deckSeed, position = Position(_info.position), time = _info.time
+        };
+    }
+
+    public static BattlePayload Battle(GameEvents.BattleEndInfo _info)
+    {
+        return new BattlePayload
+        {
+            victory = _info.victory, livesUsed = _info.livesUsed, total = _info.total,
+            bossHpRemaining = _info.bossHpRemaining, deckSeed = _info.deckSeed, time = _info.time
+        };
+    }
 
     public static SessionPayload Session(string _reason)
     {
@@ -127,6 +148,25 @@ public static class TelemetryPayload
     {
         return Mathf.Round(_value * CENTIMETERS_PER_METER) / CENTIMETERS_PER_METER;
     }
+}
+
+[Serializable]
+public struct LifePayload
+{
+    public int lifeIndex, lifeId, deckSeed;
+    public string abilityId, deathCause, source, bossPatternAtDeath;
+    public float survivalSeconds, bossDamage;
+    public TelemetryPosition position;
+    public double time;
+}
+
+[Serializable]
+public struct BattlePayload
+{
+    public bool victory;
+    public int livesUsed, total, deckSeed;
+    public float bossHpRemaining;
+    public double time;
 }
 
 // 한 줄의 형태. 분석 파일을 읽는 쪽은 이 필드만으로 해석한다(dataJson은 안쪽에 payload JSON 문자열).

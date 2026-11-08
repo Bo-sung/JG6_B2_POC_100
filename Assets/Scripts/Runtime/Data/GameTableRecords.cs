@@ -31,3 +31,40 @@ using System;
 {
     public string scene, nextScene, restartScene;
 }
+
+[Serializable]
+public sealed class ArenaPlayerData
+{
+    public float speed, acceleration, jumpSpeed, gravity, dashSpeed, dashDuration, dashCooldown;
+    public float attackDamage, attackRange, attackHeight, attackDuration, attackCooldown;
+    public float coyoteTime, jumpBuffer, fallSpeed, wallDeathSpeed, groundProbe;
+}
+
+[Serializable]
+public sealed class ArenaRulesData
+{
+    public int sets, seed, feedRows;
+    public float bossHealth, phaseThreshold, respawnDelay, spawnSafety, feedDuration;
+    public float floorY, deathY, leftWall, rightWall, bossRestX, bossRestY;
+    public float bossPause, effectWarningAlpha, effectActiveAlpha, hitFlash;
+    public string bossName, title, controls, victory, defeat;
+}
+
+[Serializable]
+public sealed class AbilityData
+{
+    public string id, displayName, description, input;
+    public bool active;
+    public float damage, range, height, delay, duration, cooldown, speed, force, extra;
+    public float selfDelay, selfDuration, selfWidth, selfHeight, spawnOffset;
+    public float recoilDuration, recoilLift, spacing, impactDuration;
+    public int emissionCount;
+}
+
+[Serializable]
+public sealed class BossPatternData
+{
+    public string id, displayName, hint, followup;
+    public int phase;
+    public float warning, duration, recovery, width, height, speed, interval;
+}

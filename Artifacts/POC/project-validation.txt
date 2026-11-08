@@ -1,0 +1,8 @@
+검증 통과
+  · 테이블 정상: 해금 2건 / 씬 경로 4건 / 능력 20종 / 패턴 7종
+  · 아레나 연결: 능력 정의 20개 / 효과 슬롯 160개
+  · 분석 로그 설정: Resources/LogData.json / 파일 위치 C:/Users/Krafton/AppData/LocalLow/DefaultCompany/JG6_B2_POC_100\Telemetry
+  · 빌드 활성 씬 4개(시작: Preload)
+  · Active Input Handling = Input System Package (New)
+  · Enter Play Mode Options 켜짐(옵션 DisableDomainReload). 정적 초기화: TableManager/GameEvents/LogKitSetup/TelemetryLog
+  · 정적 상태 초기화는 RuntimeInitializeOnLoadMethod(SubsystemRegistration) 규약을 따릅니다.

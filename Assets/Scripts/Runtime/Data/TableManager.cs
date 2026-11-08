@@ -23,6 +23,7 @@ public sealed class TableManager
 
     public GameplayTableData Gameplay { get; }
     public FlowTableData Flow { get; }
+    public ArenaTableData Arena { get; }
     public bool IsValid { get; }
 
     readonly Dictionary<string, UpgradeData> upgrades;
@@ -33,6 +34,7 @@ public sealed class TableManager
         bool loaded = true;
         Gameplay = Load<GameplayTableData>(ref loaded);
         Flow = Load<FlowTableData>(ref loaded);
+        Arena = Load<ArenaTableData>(ref loaded);
 
         var rules = new GameTableRules();
         upgrades = rules.Index(Gameplay.upgrades, e => e.id, "GameplayTableData.upgrades");

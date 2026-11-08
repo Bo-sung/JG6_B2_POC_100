@@ -1,0 +1,5 @@
+분석 로그 검증 통과
+  · 파일: C:/Users/Krafton/AppData/LocalLow/DefaultCompany/JG6_B2_POC_100\Telemetry\20261107-141452-b0562d90.jsonl
+  · 줄 163 / 이벤트 8종류 / life_end 128 / panel_visibility 12 / run_end 3 / run_start 7 / scene_change 8 / session_end 1 / session_start 1 / summary 3
+  · 요약 summaryId 1개(가장 큰 revision만 채택하면 됩니다)
+  · 이 검사는 파일 계약만 확인합니다. 값의 정확성은 플레이로 확인합니다.

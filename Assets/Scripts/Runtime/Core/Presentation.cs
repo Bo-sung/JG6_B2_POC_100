@@ -10,6 +10,89 @@ public enum EffectCategory
 
 public static class Presentation
 {
+    public const string RESTART = "다시 도전";
+    public const string START = "100명 출전";
+    public static Color ArenaBackground => new Color(0.055f, 0.065f, 0.105f);
+    public static Color ArenaGround => new Color(0.25f, 0.29f, 0.37f);
+    public static Color ArenaPlatform => new Color(0.33f, 0.40f, 0.50f);
+    public static Color ArenaInk => new Color(0.94f, 0.95f, 0.99f);
+    public static Color ArenaPanel => new Color(0.08f, 0.10f, 0.16f, 0.96f);
+    public static Color ArenaAccent => new Color(0.99f, 0.78f, 0.27f);
+
+    public static Color HazardColor(int _lifeId, bool _warning)
+    {
+        Color value = _lifeId == 0 ? new Color(1f, 0.25f, 0.30f) : new Color(0.30f, 0.92f, 1f);
+        var rules = TableManager.Instance.Arena.rules;
+        value.a = _warning ? rules.effectWarningAlpha : rules.effectActiveAlpha;
+        return value;
+    }
+
+    public static Color PlayerColor(bool _phasing, bool _safe, bool _locked)
+    {
+        if (_phasing)
+        {
+            return new Color(0.40f, 0.85f, 1f, 0.45f);
+        }
+        if (_safe)
+        {
+            return ArenaAccent;
+        }
+        return _locked ? new Color(0.75f, 0.60f, 0.95f) : ArenaInk;
+    }
+
+    public static Color BossColor(int _phase, bool _attacking, bool _recovering)
+    {
+        return _recovering ? new Color(0.50f, 0.48f, 0.65f) : _attacking
+            ? new Color(1f, 0.28f, 0.22f) : _phase == 2 ? new Color(0.78f, 0.28f, 0.67f) : new Color(0.62f, 0.36f, 0.48f);
+    }
+
+    public static string Ability(AbilityData _data)
+    {
+        return $"<b>{_data.id} · {_data.displayName}</b>\n{_data.description}\n{Dim(_data.input)}";
+    }
+
+    public static string BossHp(float _hp, float _maxHp, int _phase)
+    {
+        return $"{TableManager.Instance.Arena.rules.bossName}   {_hp:0}/{_maxHp:0}   ·   PHASE {_phase}";
+    }
+
+    public static string Lives(int _remaining, int _total)
+    {
+        return $"LIVES  {_remaining:000} / {_total}";
+    }
+
+    public static string Cause(string _source)
+    {
+        var data = TableManager.Instance.Arena;
+        var ability = data.abilities.Find(_entry => _entry.id == _source);
+        if (ability != null)
+        {
+            return ability.displayName;
+        }
+        var pattern = data.patterns.Find(_entry => _entry.id == _source);
+        if (pattern != null)
+        {
+            return data.rules.bossName + " · " + pattern.displayName;
+        }
+        return _source switch
+        {
+            "fall" => "낙사", "wall" => "벽", "ceiling" => "천장", "debug" => "개발용 사망", _ => _source
+        };
+    }
+
+    public static string KillFeed(GameEvents.DeathInfo _info)
+    {
+        return $"{Cause(_info.source)}  ×  용사 #{_info.lifeId:000}";
+    }
+
+    public static string Result(GameEvents.BattleEndInfo _info)
+    {
+        var data = TableManager.Instance.Arena.rules;
+        return $"<size=150%><b>{(_info.victory ? data.victory : data.defeat)}</b></size>\n\n" +
+            $"희생한 용사  {_info.livesUsed} / {_info.total}\n남은 보스 HP  {_info.bossHpRemaining:0}\n" +
+            $"누적 피해  {data.bossHealth - _info.bossHpRemaining:0}";
+    }
+
     // 범주 팔레트. 새 범주를 추가하면 여기 색과 Title을 함께 추가한다.
     public static Color Color(EffectCategory _category)
     {

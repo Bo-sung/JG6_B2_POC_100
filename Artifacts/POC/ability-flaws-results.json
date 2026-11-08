@@ -1,0 +1,14 @@
+{
+    "passed": true,
+    "verified": [
+        "A01 safe swing + re-entry self hit",
+        "A15 delayed pool escaped while damaging boss",
+        "A15 staying in pool causes Magic self death",
+        "A19 fatal high landing pays boss damage before Fall death",
+        "A07 forward launch with boss behind crosses owner",
+        "A14 giant ceiling contact classified Ceiling",
+        "A02 dash wall impact classified Wall",
+        "A20 phase dash passes through floor and falls"
+    ],
+    "error": ""
+}

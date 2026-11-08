@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -26,8 +27,12 @@ public static class ProjectValidation
 
         // 1) 열려 있는 씬의 빈 스크립트 참조
         int missing = 0, objects = 0;
-        foreach (var transform in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        foreach (var transform in Resources.FindObjectsOfTypeAll<Transform>())
         {
+            if (!transform.gameObject.scene.IsValid())
+            {
+                continue;
+            }
             objects++;
             foreach (var component in transform.GetComponents<MonoBehaviour>())
                 if (component == null)
@@ -48,7 +53,37 @@ public static class ProjectValidation
         }
         else
         {
-            info.Add($"테이블 정상: 해금 {tables.Upgrades.Count}건 / 씬 경로 {tables.Scenes.Count}건");
+            info.Add($"테이블 정상: 해금 {tables.Upgrades.Count}건 / 씬 경로 {tables.Scenes.Count}건 / 능력 {tables.Arena.abilities.Count}종 / 패턴 {tables.Arena.patterns.Count}종");
+        }
+
+        var arena = SceneServices.Find<ArenaSession>(SceneManager.GetActiveScene());
+        if (arena)
+        {
+            if (!arena.motor || !arena.actions || !arena.abilities || !arena.life || !arena.boss || !arena.damage || !arena.effects || !arena.spawn)
+            {
+                issues.Add("ArenaSession 씬 참조가 누락되었습니다.");
+            }
+            else
+            {
+                var ids = arena.abilities.definitions.Where(_entry => _entry).Select(_entry => _entry.id).ToArray();
+                if (ids.Length != 20 || ids.Distinct().Count() != 20 || tables.Arena.abilities.Any(_entry => !ids.Contains(_entry.id)))
+                {
+                    issues.Add("씬의 AbilityDefinition은 테이블과 같은 20개 ID여야 합니다.");
+                }
+                var hud = SceneServices.Find<ArenaHudView>(arena.gameObject.scene);
+                if (!hud || hud.feedLabels == null || hud.feedLabels.Length != tables.Arena.rules.feedRows || hud.feedLabels.Any(_entry => !_entry))
+                {
+                    issues.Add("아레나 HUD 킬로그 5개 슬롯 연결을 확인하세요.");
+                }
+                if (arena.effects.slots == null || arena.effects.slots.Any(_entry => !_entry))
+                {
+                    issues.Add("아레나 효과 슬롯 참조가 누락되었습니다.");
+                }
+                else
+                {
+                    info.Add($"아레나 연결: 능력 정의 {ids.Length}개 / 효과 슬롯 {arena.effects.slots.Length}개");
+                }
+            }
         }
 
         // 3) 분석 로그 설정(LogData)과 LogKit 전송 설정은 분리되어 있다
@@ -108,7 +143,7 @@ public static class ProjectValidation
             }
         }
 
-        // 6) 입력: 새 Input System만 사용(activeInputHandler 2 = Input System Package.New only)
+        // Input System package EditorPlayerSettingHelpers: Old=0, New=1, Both=2.
         bool newInput = System.Type.GetType("UnityEngine.InputSystem.InputSystem, Unity.InputSystem") != null;
         if (!newInput)
         {
@@ -119,11 +154,11 @@ public static class ProjectValidation
         {
             issues.Add("Player Settings의 Active Input Handling이 Input Manager(Old)입니다. 새 Input System만 쓰려면 'Input System Package (New)'로 바꿉니다.");
         }
-        else if (handler == "1")
+        else if (handler == "2")
         {
             info.Add("Active Input Handling = Both. 구 Input API를 쓰지 않으므로 'Input System Package (New)'로 조이면 실수를 막을 수 있습니다.");
         }
-        else if (handler == "2")
+        else if (handler == "1")
         {
             info.Add("Active Input Handling = Input System Package (New)");
         }

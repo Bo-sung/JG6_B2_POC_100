@@ -9,13 +9,18 @@
     },
     {
       "scene": "Title",
-      "nextScene": "Game",
+      "nextScene": "ArenaPOC",
       "restartScene": "Title"
     },
     {
       "scene": "Game",
       "nextScene": "",
       "restartScene": "Game"
+    },
+    {
+      "scene": "ArenaPOC",
+      "nextScene": "",
+      "restartScene": "ArenaPOC"
     }
   ]
 }

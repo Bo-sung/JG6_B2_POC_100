@@ -1,7 +1,8 @@
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEBUG
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 // 개발 전용 스모크 검사. 실행 인자에 -projectSmoke 가 있을 때만 동작하고, 평범한 플레이 중에는 오브젝트를 추가하지 않는다.
@@ -34,6 +35,21 @@ public sealed class SmokeCheck : MonoBehaviour
         throw new InvalidOperationException(_message);
     }
 
+    public static string VerifyArenaData()
+    {
+        var tables = TableManager.Instance.RequireValid();
+        var data = tables.Arena;
+        var deck = new AbilityDeck(data.abilities.Select(_entry => _entry.id), data.rules.sets, data.rules.seed);
+        Require(deck.cards.Count == 100, "Arena deck must contain 100 cards.");
+        Require(deck.cards.GroupBy(_id => _id).All(_group => _group.Count() == 5), "Each ability must occur five times.");
+        for (int i = 0; i < data.rules.sets; i++)
+        {
+            Require(deck.cards.Skip(i * 20).Take(20).Distinct().Count() == 20, "Every deck set requires twenty unique abilities.");
+        }
+        Require(data.abilities.Count == 20 && data.patterns.Count == 7, "Arena content IDs missing.");
+        return "ARENA_DATA_PASS: 100 cards / 20 unique abilities × 5 / 5 distinct shuffle sets / 7 patterns";
+    }
+
     IEnumerator Start()
     {
         Application.runInBackground = true;
@@ -45,6 +61,7 @@ public sealed class SmokeCheck : MonoBehaviour
         Require(tables.IsValid, "게임 테이블 검증이 실패했습니다. 콘솔의 테이블 오류를 수정하세요.");
         Require(tables.Upgrades.Count > 0, "해금 목록이 비어 있습니다.");
         Require(tables.Scenes.Count > 0, "씬 진행 목록이 비어 있습니다.");
+        Debug.Log(VerifyArenaData());
 
         // 2) 씬 로컬 풀: 등록 → 대여 → 반납 왕복
         var pool = ScenePool.Current;

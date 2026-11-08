@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // 검증과 파생 값 계산의 공통 구현. DTO와 로더에는 게임 규칙을 넣지 않는다.
@@ -137,10 +138,141 @@ public sealed class GameTableRules
     {
         Inspect(_tables.Gameplay, nameof(GameplayTableData));
         Inspect(_tables.Flow, nameof(FlowTableData));
+        Inspect(_tables.Arena, nameof(ArenaTableData));
 
         ValidatePlayer(_tables.Gameplay.player);
         ValidateUpgrades(_tables);
         ValidateScenes(_tables);
+        ValidateArena(_tables.Arena);
+    }
+
+    void ValidateArena(ArenaTableData _arena)
+    {
+        const string PATH = "ArenaTableData";
+        if (_arena == null || _arena.player == null || _arena.rules == null)
+        {
+            Check(false, PATH, "플레이어와 전투 설정이 필요합니다.");
+            return;
+        }
+        var abilities = Index(_arena.abilities == null ? null : _arena.abilities.ToArray(), _entry => _entry.id, PATH + ".abilities");
+        var patterns = Index(_arena.patterns == null ? null : _arena.patterns.ToArray(), _entry => _entry.id, PATH + ".patterns");
+        Check(abilities.Count == 20, PATH + ".abilities", "능력 20종이 필요합니다.");
+        Check(patterns.Count == 7, PATH + ".patterns", "보스 패턴 7종이 필요합니다.");
+        for (int i = 1; i <= 20; i++)
+        {
+            string id = "A" + i.ToString("00");
+            Check(abilities.ContainsKey(id), PATH + ".abilities", id + "가 필요합니다.");
+        }
+        foreach (var ability in abilities.Values)
+        {
+            string path = PATH + ".abilities." + ability.id;
+            Check(!string.IsNullOrWhiteSpace(ability.displayName), path, "표시 이름이 필요합니다.");
+            Check(!string.IsNullOrWhiteSpace(ability.description), path, "결함 설명이 필요합니다.");
+            Check(!string.IsNullOrWhiteSpace(ability.input), path, "입력 안내가 필요합니다.");
+            Nonnegative(ability.damage, path + ".damage");
+            Nonnegative(ability.range, path + ".range");
+            Nonnegative(ability.height, path + ".height");
+            Nonnegative(ability.delay, path + ".delay");
+            Nonnegative(ability.duration, path + ".duration");
+            Nonnegative(ability.cooldown, path + ".cooldown");
+            Nonnegative(ability.selfDelay, path + ".selfDelay");
+            Nonnegative(ability.selfDuration, path + ".selfDuration");
+            Nonnegative(ability.selfWidth, path + ".selfWidth");
+            Nonnegative(ability.selfHeight, path + ".selfHeight");
+            Nonnegative(ability.spawnOffset, path + ".spawnOffset");
+            Nonnegative(ability.recoilDuration, path + ".recoilDuration");
+            Nonnegative(ability.recoilLift, path + ".recoilLift");
+            Nonnegative(ability.spacing, path + ".spacing");
+            Nonnegative(ability.impactDuration, path + ".impactDuration");
+            IntRange(ability.emissionCount, 0, 160, path + ".emissionCount");
+            if (ability.id != "A11" && ability.id != "A14" && ability.id != "A20")
+            {
+                Positive(ability.range, path + ".range");
+                Positive(ability.height, path + ".height");
+            }
+            if (ability.id != "A12" && ability.id != "A20")
+            {
+                Positive(ability.duration, path + ".duration");
+            }
+            if (ability.id == "A01" || ability.id == "A07")
+            {
+                Positive(ability.spawnOffset, path + ".spawnOffset");
+            }
+            if (ability.id == "A03" || ability.id == "A15")
+            {
+                Positive(ability.selfDelay, path + ".selfDelay");
+                Positive(ability.selfDuration, path + ".selfDuration");
+                Positive(ability.selfWidth, path + ".selfWidth");
+                Positive(ability.selfHeight, path + ".selfHeight");
+            }
+            if (ability.id == "A04")
+            {
+                Positive(ability.spacing, path + ".spacing");
+                Check(ability.emissionCount > 0 && ability.emissionCount % 2 == 1, path + ".emissionCount", "자기 위치를 포함하는 홀수 개 칼날이 필요합니다.");
+            }
+            if (ability.id == "A05")
+            {
+                Positive(ability.recoilDuration, path + ".recoilDuration");
+            }
+            if (ability.id == "A05" || ability.id == "A19")
+            {
+                Positive(ability.impactDuration, path + ".impactDuration");
+            }
+            if (ability.id == "A15" || ability.id == "A19")
+            {
+                Positive(ability.extra, path + ".extra");
+            }
+            if (ability.id == "A17")
+            {
+                Positive(ability.force, path + ".force");
+            }
+            if (ability.id == "A02")
+            {
+                Check(ability.speed > _arena.player.wallDeathSpeed, path + ".speed", "벽 충돌 위험이 생기는 속도여야 합니다.");
+            }
+            bool passive = ability.id == "A01" || ability.id == "A02" || ability.id == "A08" || ability.id == "A09" ||
+                ability.id == "A10" || ability.id == "A12" || ability.id == "A13" || ability.id == "A19" || ability.id == "A20";
+            Check(ability.active != passive, path + ".active", "명세의 패시브/액티브 구분과 일치해야 합니다.");
+        }
+        for (int i = 1; i <= 7; i++)
+        {
+            string id = "B" + i.ToString("00");
+            if (!patterns.TryGetValue(id, out var pattern))
+            {
+                Check(false, PATH + ".patterns", id + "가 필요합니다.");
+                continue;
+            }
+            string path = PATH + ".patterns." + id;
+            Check(pattern.phase == (i <= 5 ? 1 : 2), path, "B01~B05는 1페이즈부터, B06~B07는 2페이즈부터 사용합니다.");
+            Check(!string.IsNullOrWhiteSpace(pattern.displayName) && !string.IsNullOrWhiteSpace(pattern.hint), path, "패턴 이름과 회피 안내가 필요합니다.");
+            Positive(pattern.warning, path + ".warning");
+            Positive(pattern.duration, path + ".duration");
+            Positive(pattern.recovery, path + ".recovery");
+            Positive(pattern.width, path + ".width");
+            Positive(pattern.height, path + ".height");
+            Positive(pattern.interval, path + ".interval");
+            Nonnegative(pattern.speed, path + ".speed");
+            Reference(pattern.followup, path + ".followup", !string.IsNullOrEmpty(pattern.followup) && patterns.ContainsKey(pattern.followup), "연계 패턴", true);
+            Check(pattern.followup != pattern.id, path + ".followup", "자기 자신을 연계할 수 없습니다.");
+        }
+        foreach (var field in typeof(ArenaPlayerData).GetFields())
+        {
+            Positive((float)field.GetValue(_arena.player), PATH + ".player." + field.Name);
+        }
+        var rules = _arena.rules;
+        Check(rules.sets == 5 && rules.feedRows == 5, PATH + ".rules", "5세트 100목숨과 킬로그 5줄이 필요합니다.");
+        Positive(rules.bossHealth, PATH + ".rules.bossHealth");
+        Check(rules.phaseThreshold > 0 && rules.phaseThreshold < 1, PATH + ".rules.phaseThreshold", "0~1 사이여야 합니다.");
+        Check(rules.respawnDelay >= 0.5f && rules.respawnDelay <= 1f, PATH + ".rules.respawnDelay", "0.5~1초여야 합니다.");
+        Positive(rules.spawnSafety, PATH + ".rules.spawnSafety");
+        Positive(rules.feedDuration, PATH + ".rules.feedDuration");
+        Positive(rules.bossPause, PATH + ".rules.bossPause");
+        Positive(rules.hitFlash, PATH + ".rules.hitFlash");
+        Fraction(rules.effectWarningAlpha, PATH + ".rules.effectWarningAlpha");
+        Fraction(rules.effectActiveAlpha, PATH + ".rules.effectActiveAlpha");
+        Check(rules.leftWall < rules.rightWall && rules.deathY < rules.floorY, PATH + ".rules", "아레나 경계가 올바르지 않습니다.");
+        Check(!string.IsNullOrWhiteSpace(rules.bossName) && !string.IsNullOrWhiteSpace(rules.controls) &&
+            !string.IsNullOrWhiteSpace(rules.title) && !string.IsNullOrWhiteSpace(rules.victory) && !string.IsNullOrWhiteSpace(rules.defeat), PATH + ".rules", "전투 표기 문자열이 필요합니다.");
     }
 
     void ValidatePlayer(PlayerData _player)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 // 테이블 원본은 Assets/Resources/Tables에만 두고, 이 클래스들은 직렬화 필드만 가진다.
 // 조회는 TableManager, 검증·파생 값 계산은 GameTableRules가 담당한다.
@@ -18,4 +19,13 @@ using System;
 {
     public string status, note;
     public SceneLinkData[] scenes = Array.Empty<SceneLinkData>();
+}
+
+[Serializable]
+public sealed class ArenaTableData
+{
+    public ArenaPlayerData player;
+    public ArenaRulesData rules;
+    public List<AbilityData> abilities;
+    public List<BossPatternData> patterns;
 }

@@ -2,13 +2,9 @@ using UnityEngine;
 
 // A05 공명의 천둥북 — a short guard stance blocks one physical hit and answers with a
 // shockwave, but the resonance recoil hurls the owner backwards toward the hazards.
-// duration: guard window, range/height: blast box, damage: blast, force: recoil.
+// duration: guard window, impactDuration: blast life, damage: blast, force/recoil*: recoil.
 public sealed class A05Runtime : AbilityRuntime
 {
-    const float BLAST_DURATION = 0.25f;
-    const float RECOIL_TIME = 0.3f;
-    const float RECOIL_LIFT = 3f;
-
     float guardRemaining;
 
     public A05Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
@@ -43,9 +39,9 @@ public sealed class A05Runtime : AbilityRuntime
         guardRemaining = 0f;
         var facing = session.motor.Facing;
         var center = session.motor.Position + new Vector2(facing * Data.range * 0.5f, 0);
-        SpawnEffect(center, new Vector2(Data.range * 2f, Data.height * 2f), 0f, BLAST_DURATION,
+        SpawnEffect(center, new Vector2(Data.range * 2f, Data.height * 2f), 0f, Data.impactDuration,
             MakeHit(DamageKind.Explosion, Data.damage), true, false);
-        session.motor.Impulse(new Vector2(-facing * Data.force, RECOIL_LIFT), RECOIL_TIME);
+        session.motor.Impulse(new Vector2(-facing * Data.force, Data.recoilLift), Data.recoilDuration);
         return true;
     }
 

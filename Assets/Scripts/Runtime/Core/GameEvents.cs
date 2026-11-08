@@ -59,6 +59,97 @@ public static class GameEvents
     public static event Action<SceneInfo> SceneChanged;
     public static event Action<UpgradeInfo> UpgradeGranted;
     public static event Action<PanelInfo> PanelVisibility;
+    public static event Action<DeathInfo> Death;
+    public static event Action<LifeInfo> LifeChanged;
+    public static event Action<BossHpInfo> BossHpChanged;
+    public static event Action<BattleEndInfo> BattleEnded;
+
+    public readonly struct DeathInfo
+    {
+        public readonly int lifeId, lifeIndex, deckSeed;
+        public readonly string abilityId, source, deathCause, bossPatternAtDeath;
+        public readonly float survivalSeconds, bossDamage;
+        public readonly Vector2 position;
+        public readonly double time;
+
+        public DeathInfo(int _lifeId, int _lifeIndex, string _abilityId, string _source, string _deathCause,
+            string _bossPatternAtDeath, float _survivalSeconds, float _bossDamage, int _deckSeed, Vector2 _position, double _time)
+        {
+            lifeId = _lifeId;
+            lifeIndex = _lifeIndex;
+            abilityId = _abilityId;
+            source = _source;
+            deathCause = _deathCause;
+            bossPatternAtDeath = _bossPatternAtDeath;
+            survivalSeconds = _survivalSeconds;
+            bossDamage = _bossDamage;
+            deckSeed = _deckSeed;
+            position = _position;
+            time = _time;
+        }
+    }
+
+    public readonly struct LifeInfo
+    {
+        public readonly int lifeId, remaining, total;
+        public readonly string abilityId;
+
+        public LifeInfo(int _lifeId, int _remaining, int _total, string _abilityId)
+        {
+            lifeId = _lifeId;
+            remaining = _remaining;
+            total = _total;
+            abilityId = _abilityId;
+        }
+    }
+
+    public readonly struct BossHpInfo
+    {
+        public readonly float hp, maxHp;
+        public readonly int phase;
+
+        public BossHpInfo(float _hp, float _maxHp, int _phase)
+        {
+            hp = _hp;
+            maxHp = _maxHp;
+            phase = _phase;
+        }
+    }
+
+    public readonly struct BattleEndInfo
+    {
+        public readonly bool victory;
+        public readonly int livesUsed, total, deckSeed;
+        public readonly float bossHpRemaining;
+        public readonly double time;
+
+        public BattleEndInfo(bool _victory, int _livesUsed, int _total, float _bossHpRemaining, int _deckSeed, double _time)
+        {
+            victory = _victory;
+            livesUsed = _livesUsed;
+            total = _total;
+            bossHpRemaining = _bossHpRemaining;
+            deckSeed = _deckSeed;
+            time = _time;
+        }
+    }
+
+    public static void RaiseDeath(DeathInfo _info)
+    {
+        Emit(Death, _info);
+    }
+    public static void RaiseLifeChanged(LifeInfo _info)
+    {
+        Emit(LifeChanged, _info);
+    }
+    public static void RaiseBossHpChanged(BossHpInfo _info)
+    {
+        Emit(BossHpChanged, _info);
+    }
+    public static void RaiseBattleEnded(BattleEndInfo _info)
+    {
+        Emit(BattleEnded, _info);
+    }
 
     // ── 발행 ──
     public static void RaiseRunStarted(string _scene, double _time)
@@ -119,6 +210,10 @@ public static class GameEvents
         SceneChanged = null;
         UpgradeGranted = null;
         PanelVisibility = null;
+        Death = null;
+        LifeChanged = null;
+        BossHpChanged = null;
+        BattleEnded = null;
         sequence = 0;
         SceneManager.sceneLoaded -= OnSceneLoaded;
         hooked = false;
