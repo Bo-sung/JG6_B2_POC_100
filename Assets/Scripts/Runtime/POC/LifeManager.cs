@@ -10,6 +10,10 @@ public sealed class LifeManager : MonoBehaviour
     public int Deaths { get; private set; }
     public bool Alive { get; private set; }
     public string AbilityId { get; private set; }
+    public float Health { get; private set; }
+    public float MaxHealth { get; private set; }
+    public bool GuardVulnerable { get; private set; }
+    public bool DeathPending => pending;
     public bool Safe => Alive && TelemetryLog.GameTime < safeUntil;
     public float BossDamage { get; set; }
     public AbilityDeck Deck { get; private set; }
@@ -49,6 +53,43 @@ public sealed class LifeManager : MonoBehaviour
         AbilityId = Deck.cards[Deaths];
         session.abilities.Equip(AbilityId);
         GameEvents.RaiseLifeChanged(new GameEvents.LifeInfo(LifeId, Remaining, Total, AbilityId));
+    }
+
+    public void ResetHealth(float _maximum = 0)
+    {
+        MaxHealth = _maximum > 0 ? _maximum : session.Data.player.maxHealth;
+        Health = Alive ? MaxHealth : 0;
+        GuardVulnerable = false;
+        PublishState("reset");
+    }
+
+    public void ArmGuardVulnerability()
+    {
+        if (!GuardVulnerable)
+        {
+            GuardVulnerable = true;
+            PublishState("guard_vulnerability");
+        }
+    }
+
+    public void PublishState(string _reason, string _source = "", float _damage = 0)
+    {
+        GameEvents.RaisePlayerStateChanged(new GameEvents.PlayerStateInfo(LifeId, Health, MaxHealth,
+            session.actions.Guarding, GuardVulnerable, _reason, _source, _damage, session.motor.Position, TelemetryLog.GameTime));
+    }
+
+    public void TakeDamage(HitContext _hit)
+    {
+        if (!Alive || pending)
+        {
+            return;
+        }
+        Health = _hit.fatal || GuardVulnerable ? 0 : Mathf.Max(0, Health - _hit.damage);
+        PublishState("damage", _hit.source, _hit.damage);
+        if (Health <= 0)
+        {
+            RequestDeath(_hit);
+        }
     }
 
     public void RequestDeath(HitContext _hit)
@@ -97,6 +138,7 @@ public sealed class LifeManager : MonoBehaviour
         session.abilities.Cleanup();
         session.motor.ResetState(session.spawn.position);
         session.actions.ResetState();
+        pending = false;
         AbilityId = _id;
         session.abilities.Equip(AbilityId);
         GameEvents.RaiseLifeChanged(new GameEvents.LifeInfo(LifeId, Remaining, Total, _id));

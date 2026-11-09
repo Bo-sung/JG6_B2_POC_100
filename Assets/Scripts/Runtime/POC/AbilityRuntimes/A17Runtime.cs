@@ -16,13 +16,13 @@ public sealed class A17Runtime : AbilityRuntime
             return;
         }
         SpendCooldown();
-        var center = session.motor.Position + new Vector2(session.motor.Facing * Data.range * 0.45f, 0);
+        var center = session.motor.Position + castDirection * (Data.range * 0.45f);
         var wave = SpawnEffect(center, new Vector2(Data.range, Data.height), 0f, Data.duration,
-            MakeHit(DamageKind.Magic, Data.damage), true, false);
+            MakeHit(DamageKind.Magic, Data.damage), true, false, _angle: EffectSystem.Angle(castDirection));
         if (wave != null)
         {
-            wave.BossPush = session.motor.Facing * Data.force;
+            wave.BossPush = castDirection.x * Data.force;
         }
-        session.motor.Lock(Data.extra);
+        session.motor.Immobilize(Data.extra);
     }
 }

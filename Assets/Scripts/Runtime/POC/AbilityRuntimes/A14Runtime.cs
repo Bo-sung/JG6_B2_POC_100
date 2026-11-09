@@ -21,7 +21,7 @@ public sealed class A14Runtime : AbilityRuntime
         SpendCooldown();
         giant = true;
         giantRemaining = Data.duration;
-        session.motor.transform.localScale = Vector3.one * Data.height;
+        session.motor.SetScale(Data.height);
     }
 
     public override void Modify(ref PlayerActionRequest _request)
@@ -32,6 +32,7 @@ public sealed class A14Runtime : AbilityRuntime
         }
         _request.damage = Data.damage;
         _request.range *= Data.extra;
+        _request.height *= Data.extra;
     }
 
     public override void Tick(float _dt)
@@ -58,7 +59,7 @@ public sealed class A14Runtime : AbilityRuntime
         giant = false;
         if (session.motor != null)
         {
-            session.motor.transform.localScale = Vector3.one;
+            session.motor.SetScale(1);
         }
     }
 }

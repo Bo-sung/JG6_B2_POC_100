@@ -1,36 +1,38 @@
 using UnityEngine;
 
-// A12 태양의 서자 — the attack becomes heavy and long-reached, but trading blows with an
-// attacking boss (clash while boss.Attacking) sends the received shock back into the
-// owner. damage/range/height: modified attack, cooldown: unused (flaw is always on).
 public sealed class A12Runtime : AbilityRuntime
 {
     public A12Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
     {
+        session.life.ResetHealth(Data.maxHealth);
     }
 
     public override void Modify(ref PlayerActionRequest _request)
     {
-        if (_request.kind != PlayerActionKind.Attack || _request.cancelled)
+        if (_request.kind == PlayerActionKind.Attack)
         {
-            return;
+            _request.damage = Data.damage;
+            _request.range = Data.range;
+            _request.height = Data.height;
         }
-        _request.damage = Data.damage;
-        _request.range = Mathf.Max(_request.range, Data.range);
-        _request.height = Mathf.Max(_request.height, Data.height);
     }
 
-    public override void After(PlayerActionRequest _request)
+    public override void GuardStarted()
     {
-        if (_request.kind != PlayerActionKind.Attack || _request.cancelled || !session.boss.Attacking)
+        session.life.ArmGuardVulnerability();
+    }
+
+    public override void Activate()
+    {
+        if (!Ready)
         {
             return;
         }
-        var center = session.motor.Position + new Vector2(session.motor.Facing * _request.range * 0.5f, 0);
-        var hitbox = new Bounds(center, new Vector3(_request.range, _request.height, 1f));
-        if (hitbox.Intersects(session.boss.hurtbox.bounds))
-        {
-            ApplySelfHit(DamageKind.Self);
-        }
+        SpendCooldown();
+        session.motor.SetAim(castDirection);
+        session.motor.Immobilize(Data.skillCharge, true);
+        var center = session.motor.Position + castDirection * (Data.skillRange * .5f);
+        SpawnEffect(center, new Vector2(Data.skillRange, Data.skillHeight), Data.skillCharge, Data.skillDuration,
+            MakeHit(DamageKind.Physical, Data.skillDamage), true, false, _angle: EffectSystem.Angle(castDirection));
     }
 }

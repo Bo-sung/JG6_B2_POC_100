@@ -16,6 +16,9 @@ public sealed class AbilityController : MonoBehaviour
         {
             throw new InvalidOperationException("Missing ability definition: " + _id);
         }
+        session.life.ResetHealth();
+        session.damage.ResetHits();
+        session.actions.ResetGuard();
         Runtime = AbilityRuntime.Create(definition.Data, session);
     }
 
@@ -23,6 +26,9 @@ public sealed class AbilityController : MonoBehaviour
     {
         Runtime?.Cleanup();
         Runtime = null;
+        session.actions.ResetGuard();
+        session.motor.ClearTransientState();
+        session.life.ResetHealth();
     }
 
     public void Modify(ref PlayerActionRequest _request)
@@ -43,8 +49,13 @@ public sealed class AbilityController : MonoBehaviour
     }
     public void Activate()
     {
+        Activate(session.actions.AimDirection);
+    }
+    public void Activate(Vector2 _direction)
+    {
         if (Runtime != null && Runtime.Data.active && Runtime.Ready)
         {
+            Runtime.CaptureAim(_direction);
             Runtime.Activate();
         }
     }

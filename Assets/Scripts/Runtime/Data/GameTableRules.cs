@@ -175,6 +175,7 @@ public sealed class GameTableRules
             Nonnegative(ability.delay, path + ".delay");
             Nonnegative(ability.duration, path + ".duration");
             Nonnegative(ability.cooldown, path + ".cooldown");
+            Nonnegative(ability.selfDamage, path + ".selfDamage");
             Nonnegative(ability.selfDelay, path + ".selfDelay");
             Nonnegative(ability.selfDuration, path + ".selfDuration");
             Nonnegative(ability.selfWidth, path + ".selfWidth");
@@ -190,7 +191,7 @@ public sealed class GameTableRules
                 Positive(ability.range, path + ".range");
                 Positive(ability.height, path + ".height");
             }
-            if (ability.id != "A12" && ability.id != "A20")
+            if (ability.id != "A05" && ability.id != "A11" && ability.id != "A12" && ability.id != "A20")
             {
                 Positive(ability.duration, path + ".duration");
             }
@@ -198,7 +199,7 @@ public sealed class GameTableRules
             {
                 Positive(ability.spawnOffset, path + ".spawnOffset");
             }
-            if (ability.id == "A03" || ability.id == "A15")
+            if (ability.id == "A15")
             {
                 Positive(ability.selfDelay, path + ".selfDelay");
                 Positive(ability.selfDuration, path + ".selfDuration");
@@ -218,7 +219,7 @@ public sealed class GameTableRules
             {
                 Positive(ability.impactDuration, path + ".impactDuration");
             }
-            if (ability.id == "A15" || ability.id == "A19")
+            if (ability.id == "A19")
             {
                 Positive(ability.extra, path + ".extra");
             }
@@ -230,9 +231,68 @@ public sealed class GameTableRules
             {
                 Check(ability.speed > _arena.player.wallDeathSpeed, path + ".speed", "벽 충돌 위험이 생기는 속도여야 합니다.");
             }
+            foreach (string fieldName in new[] { "maxHealth", "skillDamage", "skillRange", "skillHeight", "skillCharge", "skillDuration",
+                "swingDuration", "swingArc", "traceWidth", "surfaceReach", "travelLimit", "fatalFallHeight", "fatalImpactSpeed", "gravityMultiplier", "sinkAcceleration" })
+            {
+                Nonnegative((float)typeof(AbilityData).GetField(fieldName).GetValue(ability), path + "." + fieldName);
+            }
+            if (ability.id == "A01")
+            {
+                Check(ability.duration == 4, path + ".duration", "검 궤적은 4초 남습니다.");
+                Positive(ability.swingDuration, path + ".swingDuration");
+                Check(ability.swingArc > 0 && ability.swingArc <= 180, path + ".swingArc", "전방 휘두르기 각도가 필요합니다.");
+                Positive(ability.traceWidth, path + ".traceWidth");
+                Check(ability.emissionCount >= 8 && ability.emissionCount <= 24, path + ".emissionCount", "연속 궤적과 풀 예산을 위한 8~24개 구간이 필요합니다.");
+                Check(ability.cooldown > ability.swingDuration, path + ".cooldown", "휘두르기 중 재시전할 수 없습니다.");
+                Check(ability.cooldown > 0 && (Mathf.Ceil(ability.duration / ability.cooldown) + 1) * ability.emissionCount <= 100,
+                    path, "지속 궤적은 160개 공용 풀 중 최대 100개를 사용해야 합니다.");
+            }
+            if (ability.id == "A04")
+            {
+                Positive(ability.surfaceReach, path + ".surfaceReach");
+                Check(ability.emissionCount <= 24, path + ".emissionCount", "칼날 풀 예산은 최대 24개입니다.");
+            }
+            if (ability.id == "A06")
+            {
+                Check(ability.delay >= 3 && ability.damage < _arena.player.attackDamage * 2, path, "긴 충전과 작은 보상을 유지해야 합니다.");
+            }
+            if (ability.id == "A10")
+            {
+                Positive(ability.speed, path + ".speed");
+                Positive(ability.spawnOffset, path + ".spawnOffset");
+            }
+            if (ability.id == "A12")
+            {
+                Check(ability.maxHealth >= 4, path + ".maxHealth", "여러 일반 피격을 견딜 체력이 필요합니다.");
+                Positive(ability.skillDamage, path + ".skillDamage");
+                Positive(ability.skillRange, path + ".skillRange");
+                Positive(ability.skillHeight, path + ".skillHeight");
+                Positive(ability.skillCharge, path + ".skillCharge");
+                Positive(ability.skillDuration, path + ".skillDuration");
+            }
+            if (ability.id == "A13")
+            {
+                Positive(ability.travelLimit, path + ".travelLimit");
+                Positive(ability.fatalFallHeight, path + ".fatalFallHeight");
+                Positive(ability.fatalImpactSpeed, path + ".fatalImpactSpeed");
+            }
+            if (ability.id == "A15")
+            {
+                Check(ability.selfDelay > ability.duration, path + ".selfDelay", "독 분사 고정이 끝난 뒤 이탈 시간이 필요합니다.");
+            }
+            if (ability.id == "A19")
+            {
+                Positive(ability.gravityMultiplier, path + ".gravityMultiplier");
+                Positive(ability.speed, path + ".speed");
+                Positive(ability.fatalImpactSpeed, path + ".fatalImpactSpeed");
+            }
+            if (ability.id == "A20")
+            {
+                Positive(ability.sinkAcceleration, path + ".sinkAcceleration");
+            }
             bool passive = ability.id == "A01" || ability.id == "A02" || ability.id == "A08" || ability.id == "A09" ||
-                ability.id == "A10" || ability.id == "A12" || ability.id == "A13" || ability.id == "A19" || ability.id == "A20";
-            Check(ability.active != passive, path + ".active", "명세의 패시브/액티브 구분과 일치해야 합니다.");
+                ability.id == "A05" || ability.id == "A10" || ability.id == "A11" || ability.id == "A13" || ability.id == "A20";
+            Check(ability.active != passive, path + ".active", "active는 K 스킬 제공 여부와 일치해야 합니다. 패시브 훅과 병용 가능합니다.");
         }
         for (int i = 1; i <= 7; i++)
         {
@@ -245,6 +305,12 @@ public sealed class GameTableRules
             string path = PATH + ".patterns." + id;
             Check(pattern.phase == (i <= 5 ? 1 : 2), path, "B01~B05는 1페이즈부터, B06~B07는 2페이즈부터 사용합니다.");
             Check(!string.IsNullOrWhiteSpace(pattern.displayName) && !string.IsNullOrWhiteSpace(pattern.hint), path, "패턴 이름과 회피 안내가 필요합니다.");
+            Check(pattern.damageType == "Physical" || pattern.damageType == "Magic", path + ".damageType", "물리/마법 피해 유형이 필요합니다.");
+            Positive(pattern.damage, path + ".damage");
+            Check(!float.IsNaN(pattern.incomingX) && !float.IsInfinity(pattern.incomingX) && !float.IsNaN(pattern.incomingY)
+                && !float.IsInfinity(pattern.incomingY), path, "유효한 입사 방향이 필요합니다.");
+            Check(pattern.guardable == (id == "B01" || id == "B05" || id == "B06" || id == "B07"), path + ".guardable", "경량 물리와 마법만 가드 대상입니다.");
+            Check(pattern.damageType == (i >= 5 ? "Magic" : "Physical"), path + ".damageType", "패턴의 실제 타격 유형과 일치해야 합니다.");
             Positive(pattern.warning, path + ".warning");
             Positive(pattern.duration, path + ".duration");
             Positive(pattern.recovery, path + ".recovery");
@@ -259,6 +325,8 @@ public sealed class GameTableRules
         {
             Positive((float)field.GetValue(_arena.player), PATH + ".player." + field.Name);
         }
+        Check(_arena.player.maxHealth == 1, PATH + ".player.maxHealth", "기본 체력은 1이며 A12만 명시적으로 높입니다.");
+        Check(_arena.player.guardHalfAngle < 90, PATH + ".player.guardHalfAngle", "가드는 전방으로 제한됩니다.");
         var rules = _arena.rules;
         Check(rules.sets == 5 && rules.feedRows == 5, PATH + ".rules", "5세트 100목숨과 킬로그 5줄이 필요합니다.");
         Positive(rules.bossHealth, PATH + ".rules.bossHealth");

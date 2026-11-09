@@ -21,6 +21,7 @@ public sealed class A02Runtime : AbilityRuntime
             ? _request.direction.normalized
             : new Vector2(session.motor.Facing, 0);
         SpawnEffect(session.motor.Position, new Vector2(Data.range, Data.height), 0f, Data.duration,
-            MakeHit(DamageKind.Physical, Data.damage), true, false, _request.direction * Data.speed);
+            MakeHit(DamageKind.Physical, Data.damage), true, false, _request.direction * Data.speed,
+            _angle: EffectSystem.Angle(_request.direction));
     }
 }

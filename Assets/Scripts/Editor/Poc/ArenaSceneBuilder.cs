@@ -55,6 +55,7 @@ public static class ArenaSceneBuilder
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.transform.position = new Vector3(0, -.5f, -10);
         cameraObject.AddComponent<AudioListener>();
+        session.actions.aimCamera = camera;
 
         var environment = new GameObject("Arena Geometry").transform;
         Solid("Floor Left", new Vector2(-12.25f, data.rules.floorY - .5f), new Vector2(3.5f, 1), sprite, environment, false);
@@ -76,6 +77,8 @@ public static class ArenaSceneBuilder
         motor.body = body;
         motor.hurtbox = playerObject.GetComponent<BoxCollider2D>();
         motor.visual = playerObject.GetComponentInChildren<SpriteRenderer>();
+        AuthorAim(motor, sprite);
+        AuthorGuardViews(motor, sprite);
         playerObject = Prefab(playerObject, ROOT + "/Prefabs/Player.prefab");
         session.motor = playerObject.GetComponent<PlayerMotor2D>();
         session.motor.session = session;
@@ -182,6 +185,7 @@ public static class ArenaSceneBuilder
         hud.hpFill.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
         hud.hpFill.fillOrigin = 0;
         hud.livesLabel = Label("Lives", hudRoot, _font, new Vector2(.025f, .88f), new Vector2(.2f, .96f), 28, TextAlignmentOptions.Left);
+        hud.playerStatusLabel = Label("Player Status", hudRoot, _font, new Vector2(.025f, .69f), new Vector2(.20f, .87f), 21, TextAlignmentOptions.Left);
         var abilityBack = Image("Ability Backdrop", hudRoot, new Vector2(.02f, .025f), new Vector2(.62f, .20f), Presentation.ArenaPanel);
         hud.abilityLabel = Label("Ability", abilityBack, _font, new Vector2(.025f, .08f), new Vector2(.98f, .94f), 25, TextAlignmentOptions.Left);
         hud.controlsLabel = Label("Controls", hudRoot, _font, new Vector2(.02f, .205f), new Vector2(.97f, .25f), 18, TextAlignmentOptions.Left);
@@ -265,6 +269,110 @@ public static class ArenaSceneBuilder
         rect.offsetMin = _offsetMin;
         rect.offsetMax = _offsetMax;
         return rect;
+    }
+
+    public static void AuthorAim(PlayerMotor2D _motor, Sprite _sprite)
+    {
+        _motor.eyes = _motor.transform.Find("Eyes");
+        var pivot = _motor.transform.Find("Aim Pivot");
+        if (!pivot)
+        {
+            pivot = new GameObject("Aim Pivot").transform;
+            pivot.SetParent(_motor.transform, false);
+            var marker = new GameObject("Aim Marker").AddComponent<SpriteRenderer>();
+            marker.transform.SetParent(pivot, false);
+            marker.transform.localPosition = new Vector3(.7f, 0, 0);
+            marker.transform.localScale = new Vector3(.45f, .1f, 1);
+            marker.sprite = _sprite;
+            marker.color = Presentation.ArenaAccent;
+            marker.sortingOrder = 4;
+        }
+        _motor.aimPivot = pivot;
+    }
+
+    public static void AuthorGuardViews(PlayerMotor2D _motor, Sprite _sprite)
+    {
+        AuthorAim(_motor, _sprite);
+        _motor.guardVisual = AuthoredSprite("Guard Shield", _motor.aimPivot, _sprite,
+            new Vector2(.62f, 0), new Vector2(.16f, 1.25f), Presentation.ArenaAccent);
+        var pivot = _motor.transform.Find("Weapon Pivot");
+        if (!pivot)
+        {
+            pivot = new GameObject("Weapon Pivot").transform;
+            pivot.SetParent(_motor.transform, false);
+        }
+        _motor.weaponPivot = pivot;
+        _motor.weaponVisual = AuthoredSprite("Swing Blade", pivot, _sprite,
+            Vector2.right, new Vector2(1, .15f), Presentation.ArenaInk);
+        _motor.chargeVisual = AuthoredSprite("Charge Pose", _motor.transform, _sprite,
+            new Vector2(0, .95f), new Vector2(.3f, .3f), Presentation.ArenaAccent);
+        _motor.guardVisual.gameObject.SetActive(false);
+        _motor.weaponVisual.gameObject.SetActive(false);
+        _motor.chargeVisual.gameObject.SetActive(false);
+    }
+
+    static SpriteRenderer AuthoredSprite(string _name, Transform _parent, Sprite _sprite,
+        Vector2 _position, Vector2 _size, Color _color)
+    {
+        var child = _parent.Find(_name);
+        if (!child)
+        {
+            child = new GameObject(_name).transform;
+            child.SetParent(_parent, false);
+        }
+        var renderer = child.GetComponent<SpriteRenderer>();
+        if (!renderer)
+        {
+            renderer = child.gameObject.AddComponent<SpriteRenderer>();
+        }
+        child.localPosition = _position;
+        child.localScale = new Vector3(_size.x, _size.y, 1);
+        renderer.sprite = _sprite;
+        renderer.color = _color;
+        renderer.sortingOrder = 6;
+        return renderer;
+    }
+
+    [MenuItem("Tools/POC/Author Guard Revision Views")]
+    public static void AuthorGuardRevision()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            throw new InvalidOperationException("Stop Play mode before authoring.");
+        }
+        var scene = SceneManager.GetActiveScene();
+        if (scene.path != SCENE_PATH || scene.isDirty)
+        {
+            throw new InvalidOperationException("Open the saved ArenaPOC scene before authoring the guard revision.");
+        }
+        var sprite = SpriteAsset();
+        var root = PrefabUtility.LoadPrefabContents(ROOT + "/Prefabs/Player.prefab");
+        try
+        {
+            AuthorGuardViews(root.GetComponent<PlayerMotor2D>(), sprite);
+            PrefabUtility.SaveAsPrefabAsset(root, ROOT + "/Prefabs/Player.prefab");
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+        var session = SceneServices.Find<ArenaSession>(scene);
+        AuthorGuardViews(session.motor, sprite);
+        EditorUtility.SetDirty(session.motor);
+        var hud = SceneServices.Find<ArenaHudView>(scene);
+        if (!hud.playerStatusLabel)
+        {
+            hud.playerStatusLabel = Label("Player Status", hud.livesLabel.transform.parent, hud.livesLabel.font,
+                new Vector2(.025f, .69f), new Vector2(.20f, .87f), 21, TextAlignmentOptions.Left);
+        }
+        var statusRect = hud.playerStatusLabel.rectTransform;
+        statusRect.anchorMin = new Vector2(.025f, .69f);
+        statusRect.anchorMax = new Vector2(.20f, .87f);
+        statusRect.offsetMin = statusRect.offsetMax = Vector2.zero;
+        EditorUtility.SetDirty(hud);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
     }
 
     static GameObject Actor(string _name, Sprite _sprite, Vector2 _size, Color _color)

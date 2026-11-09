@@ -1,58 +1,53 @@
 using UnityEngine;
 
-// A19 초중량화 — the air dive becomes a rocket dive (speed, duration) and every dive
-// landing detonates a huge shockwave (impactDuration); the boss is resolved on the wave
-// before the suicide flag claims the owner, so even fatal high dives still pay out.
-// Diving down from higher than extra metres is lethal regardless of the payout.
-// range/height: wave box, damage: wave, extra: fatal dive height, cooldown: wave.
 public sealed class A19Runtime : AbilityRuntime
 {
-    float diveStartY;
-    bool diving;
-
     public A19Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
     {
     }
 
     public override void Modify(ref PlayerActionRequest _request)
     {
-        if (_request.kind != PlayerActionKind.Dive || _request.cancelled)
+        if (session.motor.Heavy && _request.kind == PlayerActionKind.Dash)
         {
-            return;
+            _request.cancelled = true;
         }
-        if (!diving)
-        {
-            diving = true;
-            diveStartY = session.motor.Position.y;
-        }
-        session.motor.Impulse(new Vector2(0f, -Data.speed), Data.duration);
     }
 
-    public override void Landed(float _speed)
+    public override void Activate()
     {
-        if (!diving)
-        {
-            return;
-        }
-        diving = false;
-        bool fatal = diveStartY - session.motor.Position.y > Data.extra;
-        if (!fatal && !Ready)
+        if (!Ready)
         {
             return;
         }
         SpendCooldown();
-        var position = session.motor.Position;
-        var wave = new Vector2(position.x, session.Data.rules.floorY + Data.height * 0.5f);
-        var effect = SpawnEffect(wave, new Vector2(Data.range, Data.height), 0f, Data.impactDuration,
-            MakeHit(DamageKind.Physical, Data.damage), true, false, default, fatal);
-        if (effect != null)
+        session.motor.StartHeavy(Data.duration, Data.gravityMultiplier, Data.speed);
+    }
+
+    public override void Landed(float _speed)
+    {
+        if (!session.motor.Heavy)
+        {
+            return;
+        }
+        // AirPeak predates activation, so activating just before landing cannot erase the fall.
+        bool fatal = session.motor.FallDistance > Data.extra || _speed > Data.fatalImpactSpeed;
+        Vector2 wave = new Vector2(session.motor.Position.x, session.motor.hurtbox.bounds.min.y + Data.height * .5f);
+        var effect = SpawnEffect(wave, new Vector2(Data.range, Data.height), 0, Data.impactDuration,
+            MakeHit(DamageKind.Physical, Data.damage), true, false, _suicide: fatal);
+        if (effect)
         {
             effect.SuicideKind = DamageKind.Fall;
         }
+        else if (fatal)
+        {
+            ApplySelfHit(DamageKind.Fall, true);
+        }
+        session.motor.EndHeavy();
     }
 
     public override void Cleanup()
     {
-        diving = false;
+        session.motor.EndHeavy();
     }
 }

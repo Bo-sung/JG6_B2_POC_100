@@ -37,13 +37,11 @@ public static class ArenaVerification
     static bool originalRunBackground;
     static int cleanupIndex, cleanupLifeId;
 
-    [MenuItem("Tools/POC/Run Integration Checks (Play Mode)")]
+    [Obsolete("Legacy ba7b72a integration scenarios do not cover the guard/health revision.")]
     public static void Start()
     {
-        if (!EditorApplication.isPlaying)
-        {
-            throw new InvalidOperationException("Enter ArenaPOC Play mode first.");
-        }
+        throw new InvalidOperationException("Legacy integration scenarios are retired: universal 1HP, K-only guards and airborne-S A19 are obsolete. Use the current manual checklist in Docs/POC_HANDOFF.md; request a revised automated play suite explicitly.");
+#pragma warning disable CS0162
         Stop();
         Current = new Report { running = true, stage = "data", frameStart = Time.frameCount };
         Current.data = SmokeCheck.VerifyArenaData();
@@ -60,6 +58,7 @@ public static class ArenaVerification
         EditorApplication.update += Tick;
     }
 
+#pragma warning restore CS0162
     public static void Stop()
     {
         EditorApplication.update -= Tick;
@@ -231,7 +230,7 @@ public static class ArenaVerification
                     }
                     session.effects.Spawn(session.motor.Position, Vector2.one, 10, 1,
                         new HitContext(cleanupLifeId, cleanupId, DamageKind.Magic, 1), true, true);
-                    session.damage.Apply(false, new HitContext(cleanupLifeId, "debug", DamageKind.Self, 1, true));
+                    session.damage.Apply(false, new HitContext(cleanupLifeId, "debug", DamageKind.Self, session.life.MaxHealth, true) { fatal = true });
                     deadline = TelemetryLog.GameTime + session.Data.rules.respawnDelay + .15;
                     state = 8;
                     break;
@@ -258,7 +257,7 @@ public static class ArenaVerification
                     }
                     else if (session.life.Alive)
                     {
-                        session.damage.Apply(false, new HitContext(session.life.LifeId, "debug", DamageKind.Self, 1, true));
+                        session.damage.Apply(false, new HitContext(session.life.LifeId, "debug", DamageKind.Self, session.life.MaxHealth, true) { fatal = true });
                         deadline = TelemetryLog.GameTime + .05;
                     }
                     break;

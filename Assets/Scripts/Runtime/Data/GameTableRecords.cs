@@ -38,6 +38,7 @@ public sealed class ArenaPlayerData
     public float speed, acceleration, jumpSpeed, gravity, dashSpeed, dashDuration, dashCooldown;
     public float attackDamage, attackRange, attackHeight, attackDuration, attackCooldown;
     public float coyoteTime, jumpBuffer, fallSpeed, wallDeathSpeed, groundProbe;
+    public float maxHealth, guardHalfAngle;
 }
 
 [Serializable]
@@ -56,9 +57,12 @@ public sealed class AbilityData
     public string id, displayName, description, input;
     public bool active;
     public float damage, range, height, delay, duration, cooldown, speed, force, extra;
-    public float selfDelay, selfDuration, selfWidth, selfHeight, spawnOffset;
+    public float selfDelay, selfDuration, selfWidth, selfHeight, selfDamage, spawnOffset;
     public float recoilDuration, recoilLift, spacing, impactDuration;
     public int emissionCount;
+    public float maxHealth, skillDamage, skillRange, skillHeight, skillCharge, skillDuration;
+    public float swingDuration, swingArc, traceWidth, surfaceReach, travelLimit, fatalFallHeight, fatalImpactSpeed;
+    public float gravityMultiplier, sinkAcceleration;
 }
 
 [Serializable]
@@ -66,5 +70,8 @@ public sealed class BossPatternData
 {
     public string id, displayName, hint, followup;
     public int phase;
+    public string damageType;
+    public bool guardable;
+    public float damage, incomingX, incomingY;
     public float warning, duration, recovery, width, height, speed, interval;
 }

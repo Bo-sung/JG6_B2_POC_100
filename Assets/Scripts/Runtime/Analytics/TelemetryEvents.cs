@@ -11,6 +11,7 @@ public static class TelemetryEvents
     public const string SCENE_CHANGE = "scene_change";
     public const string UPGRADE_GRANTED = "upgrade_granted";
     public const string PANEL_VISIBILITY = "panel_visibility";
+    public const string PLAYER_HEALTH = "player_health";
     public const string LIFE_END = "life_end";
 }
 
@@ -69,6 +70,16 @@ public struct TelemetryPosition
 public static class TelemetryPayload
 {
     const float CENTIMETERS_PER_METER = 100f;
+
+    public static PlayerHealthPayload PlayerHealth(GameEvents.PlayerStateInfo _info)
+    {
+        return new PlayerHealthPayload
+        {
+            lifeId = _info.lifeId, hp = _info.hp, maxHp = _info.maxHp, damage = _info.damage,
+            guardVulnerable = _info.vulnerable, reason = _info.reason, source = _info.source,
+            position = Position(_info.position), time = _info.time
+        };
+    }
 
     public static LifePayload Life(GameEvents.DeathInfo _info)
     {
@@ -148,6 +159,17 @@ public static class TelemetryPayload
     {
         return Mathf.Round(_value * CENTIMETERS_PER_METER) / CENTIMETERS_PER_METER;
     }
+}
+
+[Serializable]
+public struct PlayerHealthPayload
+{
+    public int lifeId;
+    public float hp, maxHp, damage;
+    public bool guardVulnerable;
+    public string reason, source;
+    public TelemetryPosition position;
+    public double time;
 }
 
 [Serializable]

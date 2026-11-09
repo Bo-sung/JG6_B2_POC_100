@@ -38,7 +38,7 @@ public sealed class ArenaDebugTools : EditorWindow
         }
         if (GUILayout.Button("Lose one life"))
         {
-            session.damage.Apply(false, new HitContext(session.life.LifeId, "debug", DamageKind.Self, 1, true));
+            session.damage.Apply(false, new HitContext(session.life.LifeId, "debug", DamageKind.Self, session.life.MaxHealth, true) { fatal = true });
         }
         if (GUILayout.Button("Dump deck"))
         {

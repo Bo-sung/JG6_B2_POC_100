@@ -3,7 +3,7 @@ using UnityEngine;
 
 public sealed class ArenaHudView : PanelBase
 {
-    public TMP_Text bossLabel, livesLabel, abilityLabel, controlsLabel, patternLabel;
+    public TMP_Text bossLabel, livesLabel, abilityLabel, controlsLabel, patternLabel, playerStatusLabel;
     public UnityEngine.UI.Image hpFill;
     public TMP_Text[] feedLabels;
 

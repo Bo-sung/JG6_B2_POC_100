@@ -1,31 +1,59 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-// A10 나마흐의 눈물 — the splash only sheds off an actual impact: a whiffed swing sheds
-// no fluid. When the boss is point-blank (within extra metres) the backsplash lands on
-// the owner too. range/height: splash box, duration: splash life, damage: splash,
-// extra: backsplash range.
 public sealed class A10Runtime : AbilityRuntime
 {
+    readonly List<EffectSlot> liquid = new List<EffectSlot>();
+
     public A10Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
     {
     }
 
+    public override void Modify(ref PlayerActionRequest _request)
+    {
+        if (_request.kind == PlayerActionKind.Attack)
+        {
+            _request.replaceBasic = true;
+        }
+    }
+
     public override void After(PlayerActionRequest _request)
     {
-        if (_request.kind != PlayerActionKind.Attack || _request.cancelled || !Ready)
-        {
-            return;
-        }
-        var center = session.motor.Position + new Vector2(session.motor.Facing * _request.range * 0.5f, 0);
-        var hitbox = new Bounds(center, new Vector3(_request.range, _request.height, 1f));
-        var bossBounds = session.boss.hurtbox.bounds;
-        if (!hitbox.Intersects(bossBounds))
+        if (_request.kind != PlayerActionKind.Attack || !Ready)
         {
             return;
         }
         SpendCooldown();
-        bool pointBlank = bossBounds.SqrDistance(session.motor.Position) <= Data.extra * Data.extra;
-        SpawnEffect(center, new Vector2(_request.range, _request.height), 0f, Data.duration,
-            MakeHit(DamageKind.Magic, Data.damage), true, pointBlank);
+        liquid.RemoveAll(_slot => !_slot.live || _slot.hit.source != Data.id);
+        Vector2 direction = _request.direction;
+        var half = session.motor.hurtbox.bounds.extents;
+        float support = Mathf.Abs(direction.x) * half.x + Mathf.Abs(direction.y) * half.y;
+        var muzzle = session.motor.Position + direction * (support + Data.range * .5f + Data.spawnOffset);
+        var shot = SpawnEffect(muzzle, new Vector2(Data.range, Data.height), 0, Data.duration,
+            MakeHit(DamageKind.Magic, Data.damage), true, true, direction * Data.speed, _angle: EffectSystem.Angle(direction));
+        if (shot)
+        {
+            liquid.Add(shot);
+            if (session.actions.Guarding)
+            {
+                shot.ReturnToward(session.motor.Position, Data.speed);
+            }
+        }
+    }
+
+    public override void GuardStarted()
+    {
+        foreach (var shot in liquid)
+        {
+            if (shot.live && shot.hit.lifeId == session.life.LifeId && shot.hit.source == Data.id)
+            {
+                shot.ReturnToward(session.motor.Position, Data.speed);
+            }
+        }
+    }
+
+    public override void Cleanup()
+    {
+        liquid.Clear();
     }
 }

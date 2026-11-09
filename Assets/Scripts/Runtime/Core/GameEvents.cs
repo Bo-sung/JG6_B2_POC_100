@@ -59,6 +59,37 @@ public static class GameEvents
     public static event Action<SceneInfo> SceneChanged;
     public static event Action<UpgradeInfo> UpgradeGranted;
     public static event Action<PanelInfo> PanelVisibility;
+    public static event Action<PlayerStateInfo> PlayerStateChanged;
+    public readonly struct PlayerStateInfo
+    {
+        public readonly int lifeId;
+        public readonly float hp, maxHp, damage;
+        public readonly bool guarding, vulnerable;
+        public readonly string reason, source;
+        public readonly Vector2 position;
+        public readonly double time;
+
+        public PlayerStateInfo(int _lifeId, float _hp, float _maxHp, bool _guarding, bool _vulnerable,
+            string _reason, string _source, float _damage, Vector2 _position, double _time)
+        {
+            lifeId = _lifeId;
+            hp = _hp;
+            maxHp = _maxHp;
+            guarding = _guarding;
+            vulnerable = _vulnerable;
+            reason = _reason;
+            source = _source;
+            damage = _damage;
+            position = _position;
+            time = _time;
+        }
+    }
+
+    public static void RaisePlayerStateChanged(PlayerStateInfo _info)
+    {
+        Emit(PlayerStateChanged, _info);
+    }
+
     public static event Action<DeathInfo> Death;
     public static event Action<LifeInfo> LifeChanged;
     public static event Action<BossHpInfo> BossHpChanged;
@@ -210,6 +241,7 @@ public static class GameEvents
         SceneChanged = null;
         UpgradeGranted = null;
         PanelVisibility = null;
+        PlayerStateChanged = null;
         Death = null;
         LifeChanged = null;
         BossHpChanged = null;

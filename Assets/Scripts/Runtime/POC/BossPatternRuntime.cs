@@ -41,8 +41,13 @@ public abstract class BossPatternRuntime
     protected void Hazard(Vector2 _position, Vector2 _size, float _delay, float _duration,
         DamageKind _kind = DamageKind.Physical, Vector2 _velocity = default)
     {
+        _kind = (DamageKind)Enum.Parse(typeof(DamageKind), Data.damageType);
         session.effects.Spawn(_position, _size, _delay, _duration,
-            new HitContext(0, Data.id, _kind, 1), false, true, _velocity);
+            new HitContext(0, Data.id, _kind, Data.damage)
+            {
+                guardable = Data.guardable, hasOrigin = true, sourcePosition = Origin,
+                incomingDirection = _velocity.sqrMagnitude > 0 ? _velocity.normalized : new Vector2(Data.incomingX, Data.incomingY)
+            }, false, true, _velocity);
     }
 }
 
@@ -89,7 +94,7 @@ public sealed class BossRush : BossPatternRuntime
         // Show the route, then damage only the moving body: the corridor never becomes one long hitbox.
         session.effects.Spawn(new Vector2((start.x + endX) * 0.5f, Floor + Data.height * 0.5f),
             new Vector2(Mathf.Abs(endX - start.x), Data.height), Data.warning, 0,
-            new HitContext(0, Data.id, DamageKind.Physical, 1), false, false);
+            new HitContext(0, Data.id, DamageKind.Physical, Data.damage), false, false);
         Hazard(new Vector2(start.x, Floor + Data.height * 0.5f), new Vector2(Data.width, Data.height),
             Data.warning, Data.duration, DamageKind.Physical,
             new Vector2(Mathf.Sign(endX - start.x) * Data.speed, 0));

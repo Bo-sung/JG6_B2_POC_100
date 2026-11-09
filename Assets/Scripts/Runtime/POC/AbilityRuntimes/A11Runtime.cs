@@ -1,42 +1,22 @@
 using UnityEngine;
 
-// A11 신뢰의 방벽 — duration seconds of perfect protection against magic hits only;
-// physical blades and dashes go straight through the barrier untouched.
-// duration: barrier window, cooldown: per cast.
 public sealed class A11Runtime : AbilityRuntime
 {
-    float guardRemaining;
-
     public A11Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
     {
     }
 
-    public override void Activate()
+    public override void Modify(ref PlayerActionRequest _request)
     {
-        if (!Ready)
+        if (_request.kind == PlayerActionKind.Attack)
         {
-            return;
-        }
-        SpendCooldown();
-        guardRemaining = Data.duration;
-    }
-
-    public override bool Defend(HitContext _hit)
-    {
-        return guardRemaining > 0f && _hit.kind == DamageKind.Magic;
-    }
-
-    public override void Tick(float _dt)
-    {
-        base.Tick(_dt);
-        if (guardRemaining > 0f)
-        {
-            guardRemaining -= _dt;
+            _request.damage = Data.damage;
         }
     }
 
-    public override void Cleanup()
+    public override void ModifyGuard(ref GuardPolicy _policy)
     {
-        guardRemaining = 0f;
+        _policy.physical = false;
+        _policy.magic = true;
     }
 }

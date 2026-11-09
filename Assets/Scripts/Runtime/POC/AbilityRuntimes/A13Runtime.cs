@@ -1,30 +1,68 @@
 using UnityEngine;
 
-// A13 초근력 — the punch is massively stronger, but the same swing launches the owner
-// backwards (force exceeds the wall death speed) toward walls and ledges.
-// damage: punch, force: recoil launch, duration: recoil time, cooldown: unused.
 public sealed class A13Runtime : AbilityRuntime
 {
+    bool tracking;
+    float travel;
+    Vector2 previous;
+
     public A13Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
     {
     }
 
     public override void Modify(ref PlayerActionRequest _request)
     {
-        if (_request.kind != PlayerActionKind.Attack || _request.cancelled)
+        if (_request.kind == PlayerActionKind.Attack)
         {
-            return;
+            _request.damage = Data.damage;
         }
-        _request.damage = Data.damage;
     }
 
     public override void After(PlayerActionRequest _request)
     {
-        if (_request.kind != PlayerActionKind.Attack || _request.cancelled)
+        if (_request.kind != PlayerActionKind.Attack)
         {
             return;
         }
-        float direction = Mathf.Abs(_request.direction.x) > 0.1f ? Mathf.Sign(_request.direction.x) : session.motor.Facing;
-        session.motor.Impulse(new Vector2(-direction * Data.force, 0f), Data.duration);
+        if (!tracking)
+        {
+            travel = 0;
+            previous = session.motor.Position;
+            tracking = true;
+        }
+        session.motor.Impulse(-_request.direction * Data.force, Data.duration);
+    }
+
+    public override void Tick(float _dt)
+    {
+        base.Tick(_dt);
+        if (!tracking)
+        {
+            return;
+        }
+        travel += Vector2.Distance(previous, session.motor.Position);
+        previous = session.motor.Position;
+        if (travel > Data.travelLimit)
+        {
+            ApplySelfHit(DamageKind.Self);
+        }
+        if (session.motor.Grounded && !session.motor.Recoiling)
+        {
+            tracking = false;
+        }
+    }
+
+    public override void Landed(float _speed)
+    {
+        if (tracking && (session.motor.FallDistance > Data.fatalFallHeight || _speed > Data.fatalImpactSpeed))
+        {
+            ApplySelfHit(DamageKind.Fall);
+        }
+    }
+
+    public override void Cleanup()
+    {
+        tracking = false;
+        travel = 0;
     }
 }

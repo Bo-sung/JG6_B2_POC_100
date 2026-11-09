@@ -1,8 +1,6 @@
 using UnityEngine;
 
-// A03 백염의 병 — a narrow lethal beam fires forward, but the launch position turns into
-// a lingering danger zone; step out during selfDelay or melt in your own flame.
-// range: beam length, height: beam width, duration: beam life, self*: backblast zone.
+// A03 백염의 병: 몸에서 조준 방향으로 광선을 발사한다. 발동 위치에 위험 지역을 만들지 않는다.
 public sealed class A03Runtime : AbilityRuntime
 {
     public A03Runtime(AbilityData _data, ArenaSession _session) : base(_data, _session)
@@ -16,12 +14,14 @@ public sealed class A03Runtime : AbilityRuntime
             return;
         }
         SpendCooldown();
-        var direction = new Vector2(session.motor.Facing, 0);
+        var direction = castDirection;
         var center = session.motor.Position + direction * (Data.range * 0.5f);
-        SpawnEffect(center, new Vector2(Data.range, Data.height), 0f, Data.duration,
-            MakeHit(DamageKind.Magic, Data.damage), true, false);
-        SpawnEffect(session.motor.Position, new Vector2(Data.selfWidth, Data.selfHeight),
-            Data.selfDelay, Data.selfDuration,
-            MakeHit(DamageKind.Magic, 1f), false, true);
+        var beam = SpawnEffect(center, new Vector2(Data.range, Data.height), 0f, Data.duration,
+            MakeHit(DamageKind.Magic, Data.damage), true, false, _angle: EffectSystem.Angle(direction));
+        if (beam)
+        {
+            beam.FollowTarget = session.motor.transform;
+            beam.FollowOffset = direction * (Data.range * .5f);
+        }
     }
 }

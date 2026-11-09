@@ -15,5 +15,6 @@ public sealed class A20Runtime : AbilityRuntime
             return;
         }
         _request.phase = true;
+        _request.sinkAcceleration = Data.sinkAcceleration;
     }
 }

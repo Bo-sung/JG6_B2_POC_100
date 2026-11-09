@@ -17,8 +17,8 @@ public sealed class A18Runtime : AbilityRuntime
         }
         SpendCooldown();
         session.motor.Lock(Data.delay + Data.duration);
-        var center = session.motor.Position + new Vector2(session.motor.Facing * Data.range * 0.5f, 0);
+        var center = session.motor.Position + castDirection * (Data.range * 0.5f);
         SpawnEffect(center, new Vector2(Data.range, Data.height), Data.delay, Data.duration,
-            MakeHit(DamageKind.Magic, Data.damage), true, false);
+            MakeHit(DamageKind.Magic, Data.damage), true, false, _angle: EffectSystem.Angle(castDirection));
     }
 }

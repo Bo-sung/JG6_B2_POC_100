@@ -61,12 +61,19 @@ public class AbilityRuntime
     public AbilityData Data { get; }
     public bool Ready => cooldownRemaining <= 0f;
     protected readonly ArenaSession session;
+    protected Vector2 castDirection;
     float cooldownRemaining;
 
     public AbilityRuntime(AbilityData _data, ArenaSession _session)
     {
         Data = _data;
         session = _session;
+        castDirection = session.actions.AimDirection;
+    }
+
+    public void CaptureAim(Vector2 _direction)
+    {
+        castDirection = PlayerMotor2D.NormalizeAim(_direction, castDirection);
     }
 
     public virtual void Modify(ref PlayerActionRequest _request)
@@ -81,9 +88,25 @@ public class AbilityRuntime
     {
     }
 
+    public virtual void ModifyGuard(ref GuardPolicy _policy)
+    {
+    }
+
+    public virtual void GuardStarted()
+    {
+    }
+
+    public virtual void GuardBlocked(HitContext _hit, Vector2 _direction)
+    {
+    }
+
+    public virtual void Damaged(HitContext _hit)
+    {
+    }
+
     public virtual bool Defend(HitContext _hit)
     {
-        return false;
+        return session.actions.TryGuard(_hit);
     }
 
     public virtual void Activate()
@@ -109,20 +132,24 @@ public class AbilityRuntime
 
     protected HitContext MakeHit(DamageKind _kind, float _damage, bool _bypassSafety = false)
     {
-        return new HitContext(session.life.LifeId, Data.displayName, _kind, _damage, _bypassSafety);
+        return new HitContext(session.life.LifeId, Data.id, _kind, _damage, _bypassSafety)
+        {
+            hasOrigin = true, sourcePosition = session.motor.Position, incomingDirection = castDirection
+        };
     }
 
     protected EffectSlot SpawnEffect(Vector2 _position, Vector2 _size, float _delay, float _duration,
-        HitContext _hit, bool _boss, bool _player, Vector2 _velocity = default, bool _suicide = false)
+        HitContext _hit, bool _boss, bool _player, Vector2 _velocity = default, bool _suicide = false, float _angle = 0)
     {
-        return session.effects.Spawn(_position, _size, _delay, _duration, _hit, _boss, _player, _velocity, _suicide);
+        return session.effects.Spawn(_position, _size, _delay, _duration, _hit, _boss, _player, _velocity, _suicide, _angle);
     }
 
-    // Player HP is 1, so any applied self hit is lethal. Source stays the ability name so
-    // the kill feed always states the true cause of death.
+    // Explicit sacrifice stays fatal even if health was raised by a debug transition.
     protected bool ApplySelfHit(DamageKind _kind, bool _bypassSafety = false)
     {
-        return session.damage.Apply(false, MakeHit(_kind, 1f, _bypassSafety));
+        var hit = MakeHit(_kind, session.life.MaxHealth, _bypassSafety);
+        hit.fatal = true;
+        return session.damage.Apply(false, hit);
     }
 
     protected Vector2 AimToBoss()

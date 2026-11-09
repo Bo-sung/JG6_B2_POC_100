@@ -18,6 +18,7 @@ public sealed class ArenaHudPresenter : MonoBehaviour
 
     void OnEnable()
     {
+        GameEvents.PlayerStateChanged += OnPlayerState;
         GameEvents.LifeChanged += OnLife;
         GameEvents.BossHpChanged += OnHealth;
         GameEvents.Death += OnDeath;
@@ -27,6 +28,7 @@ public sealed class ArenaHudPresenter : MonoBehaviour
 
     void OnDisable()
     {
+        GameEvents.PlayerStateChanged -= OnPlayerState;
         GameEvents.LifeChanged -= OnLife;
         GameEvents.BossHpChanged -= OnHealth;
         GameEvents.Death -= OnDeath;
@@ -37,6 +39,17 @@ public sealed class ArenaHudPresenter : MonoBehaviour
     void Start()
     {
         hud.controlsLabel.text = session.Data.rules.controls;
+    }
+
+    void OnPlayerState(GameEvents.PlayerStateInfo _info)
+    {
+        ShowPlayerState();
+    }
+
+    void ShowPlayerState()
+    {
+        hud.playerStatusLabel.text = Presentation.PlayerStatus(session.life.Health, session.life.MaxHealth,
+            session.actions.Guarding, session.life.GuardVulnerable, session.motor.Locked, session.motor.Heavy, session.motor.Phasing);
     }
 
     void OnLife(GameEvents.LifeInfo _info)
@@ -76,6 +89,7 @@ public sealed class ArenaHudPresenter : MonoBehaviour
             float fraction = (float)((expiry[i] - TelemetryLog.GameTime) / session.Data.rules.feedDuration);
             hud.ShowFeed(i, lines[i] ?? string.Empty, Mathf.Clamp01(fraction));
         }
+        ShowPlayerState();
         string patternId = session.boss.PatternId;
         var pattern = session.Data.patterns.Find(_entry => _entry.id == patternId);
         hud.patternLabel.text = pattern == null ? string.Empty : pattern.displayName + " · " + pattern.hint;

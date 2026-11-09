@@ -1,9 +1,5 @@
 using UnityEngine;
 
-// A07 대지의 별 — the star always launches forward and then homes to the boss; when the
-// boss stands behind you the return orbit sweeps back through your own body, so dodging
-// the orbit is a real choice. speed: homing speed, duration: lifetime, spawnOffset: launch
-// distance, range/height: star box, cooldown: cast.
 public sealed class A07Runtime : AbilityRuntime
 {
     EffectSlot star;
@@ -19,26 +15,24 @@ public sealed class A07Runtime : AbilityRuntime
             return;
         }
         SpendCooldown();
-        var direction = new Vector2(session.motor.Facing, 0);
-        star = SpawnEffect(session.motor.Position + direction * Data.spawnOffset,
-            new Vector2(Data.range, Data.height), 0f, Data.duration,
-            MakeHit(DamageKind.Magic, Data.damage), true, true);
-    }
-
-    public override void Tick(float _dt)
-    {
-        base.Tick(_dt);
-        if (star == null || !star.live)
+        var half = session.motor.hurtbox.bounds.extents;
+        // Separating plane along the launch axis includes the rotated projectile half-length.
+        // The old fixed 1.4 offset could overlap the combined extents at diagonal launch angles.
+        float support = Mathf.Abs(castDirection.x) * half.x + Mathf.Abs(castDirection.y) * half.y;
+        Vector2 muzzle = (Vector2)session.motor.hurtbox.bounds.center + castDirection * (support + Data.range * .5f + Data.spawnOffset);
+        star = SpawnEffect(muzzle, new Vector2(Data.range, Data.height), 0, Data.duration,
+            MakeHit(DamageKind.Magic, Data.damage), true, true, _angle: EffectSystem.Angle(castDirection));
+        if (star)
         {
-            return;
+            // The slot owns movement and its swept previousPosition: no external transform race.
+            star.HomingTarget = session.boss.transform;
+            star.HomingSpeed = Data.speed;
         }
-        var target = (Vector2)session.boss.hurtbox.bounds.center;
-        star.transform.position = Vector2.MoveTowards(star.transform.position, target, Data.speed * _dt);
     }
 
     public override void Cleanup()
     {
-        if (star != null && star.live)
+        if (star != null)
         {
             star.Clear();
         }

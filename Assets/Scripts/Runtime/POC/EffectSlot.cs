@@ -8,14 +8,32 @@ public sealed class EffectSlot : MonoBehaviour
     public float Remaining => delay + duration - age;
     public DamageKind SuicideKind { get; set; }
     public float BossPush { get; set; }
-    float delay, duration, age;
+    float delay, duration, age, angle;
     bool boss, player, bossHit, playerHit, suicide;
     Vector2 velocity, size, previousPosition;
+    public Transform FollowTarget { get; set; }
+    public Vector2 FollowOffset { get; set; }
+    public Transform HomingTarget { get; set; }
+    public float HomingSpeed { get; set; }
+
+    public void ReturnToward(Vector2 _target, float _speed)
+    {
+        HomingTarget = null;
+        velocity = (_target - (Vector2)transform.position).normalized * _speed;
+        angle = EffectSystem.Angle(velocity);
+        transform.rotation = Quaternion.Euler(0, 0, angle);
+        player = true;
+    }
 
     public void Configure(Vector2 _position, Vector2 _size, float _delay, float _duration,
-        HitContext _hit, bool _boss, bool _player, Vector2 _velocity, bool _suicide)
+        HitContext _hit, bool _boss, bool _player, Vector2 _velocity, bool _suicide, float _angle = 0)
     {
+        FollowTarget = HomingTarget = null;
+        FollowOffset = Vector2.zero;
+        HomingSpeed = 0;
         transform.position = _position;
+        angle = _angle;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
         transform.localScale = new Vector3(_size.x, _size.y, 1);
         size = _size;
         delay = _delay;
@@ -45,12 +63,28 @@ public sealed class EffectSlot : MonoBehaviour
         }
         visual.color = Presentation.HazardColor(hit.lifeId, false);
         Vector2 old = previousPosition;
-        transform.position += (Vector3)(velocity * _dt);
-        // Swept box bounds avoid fast projectiles tunnelling between physics ticks.
+        if (FollowTarget)
+        {
+            transform.position = (Vector2)FollowTarget.position + FollowOffset;
+        }
+        else if (HomingTarget)
+        {
+            Vector2 target = HomingTarget.position;
+            velocity = (target - (Vector2)transform.position).normalized * HomingSpeed;
+            transform.position = Vector2.MoveTowards(transform.position, target, HomingSpeed * _dt);
+        }
+        else
+        {
+            transform.position += (Vector3)(velocity * _dt);
+        }
+        if (velocity.sqrMagnitude > 0.0001f)
+        {
+            hit.incomingDirection = velocity.normalized;
+        }
+        // Sweep the actual oriented box, without widening a diagonal into an AABB.
         Vector2 step = (Vector2)transform.position - old;
         previousPosition = transform.position;
-        var bounds = new Bounds(old + step * 0.5f, new Vector3(size.x + Mathf.Abs(step.x), size.y + Mathf.Abs(step.y), 1));
-        if (boss && !bossHit && bounds.Intersects(_session.boss.hurtbox.bounds))
+        if (boss && !bossHit && EffectSystem.Overlaps(old, size, angle, _session.boss.hurtbox.bounds, step))
         {
             bossHit = _session.damage.Apply(true, hit);
             if (bossHit && BossPush != 0)
@@ -58,13 +92,13 @@ public sealed class EffectSlot : MonoBehaviour
                 _session.boss.Push(BossPush);
             }
         }
-        if (player && !playerHit && bounds.Intersects(_session.motor.hurtbox.bounds))
+        if (player && !playerHit && EffectSystem.Overlaps(old, size, angle, _session.motor.hurtbox.bounds, step))
         {
             playerHit = _session.damage.Apply(false, hit);
         }
         if (suicide)
         {
-            _session.damage.Apply(false, new HitContext(hit.lifeId, hit.source, SuicideKind, 1, true));
+            _session.damage.Apply(false, new HitContext(hit.lifeId, hit.source, SuicideKind, _session.life.MaxHealth, true) { fatal = true });
             suicide = false;
         }
         if (age >= delay + duration)

@@ -27,7 +27,7 @@ public static class Presentation
         return value;
     }
 
-    public static Color PlayerColor(bool _phasing, bool _safe, bool _locked)
+    public static Color PlayerColor(bool _phasing, bool _safe, bool _locked, bool _heavy = false)
     {
         if (_phasing)
         {
@@ -37,7 +37,7 @@ public static class Presentation
         {
             return ArenaAccent;
         }
-        return _locked ? new Color(0.75f, 0.60f, 0.95f) : ArenaInk;
+        return _locked ? new Color(0.75f, 0.60f, 0.95f) : _heavy ? new Color(.5f, .45f, .4f) : ArenaInk;
     }
 
     public static Color BossColor(int _phase, bool _attacking, bool _recovering)
@@ -49,6 +49,14 @@ public static class Presentation
     public static string Ability(AbilityData _data)
     {
         return $"<b>{_data.id} · {_data.displayName}</b>\n{_data.description}\n{Dim(_data.input)}";
+    }
+
+    public static string PlayerStatus(float _hp, float _maxHp, bool _guarding, bool _vulnerable,
+        bool _charging, bool _heavy, bool _phasing)
+    {
+        return $"체력 {_hp:0}/{_maxHp:0}" + (_vulnerable ? " · 다음 피해 즉사" : string.Empty)
+            + (_guarding ? " · 전방 방어" : string.Empty) + (_charging ? " · 행동 고정" : string.Empty)
+            + (_heavy ? " · 중량화" : string.Empty) + (_phasing ? " · 가라앉는 유체화" : string.Empty);
     }
 
     public static string BossHp(float _hp, float _maxHp, int _phase)

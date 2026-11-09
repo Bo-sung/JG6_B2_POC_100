@@ -21,6 +21,7 @@ public sealed class TelemetryRecorder : MonoBehaviour
         GameEvents.SceneChanged += OnSceneChanged;
         GameEvents.UpgradeGranted += OnUpgradeGranted;
         GameEvents.PanelVisibility += OnPanelVisibility;
+        GameEvents.PlayerStateChanged += OnPlayerState;
         GameEvents.Death += OnDeath;
         GameEvents.BattleEnded += OnBattleEnded;
     }
@@ -32,6 +33,7 @@ public sealed class TelemetryRecorder : MonoBehaviour
         GameEvents.SceneChanged -= OnSceneChanged;
         GameEvents.UpgradeGranted -= OnUpgradeGranted;
         GameEvents.PanelVisibility -= OnPanelVisibility;
+        GameEvents.PlayerStateChanged -= OnPlayerState;
         GameEvents.Death -= OnDeath;
         GameEvents.BattleEnded -= OnBattleEnded;
     }
@@ -59,6 +61,15 @@ public sealed class TelemetryRecorder : MonoBehaviour
     void OnPanelVisibility(GameEvents.PanelInfo _info)
     {
         TelemetryLog.Write(TelemetryEvents.PANEL_VISIBILITY, TelemetryPayload.Panel(_info));
+    }
+
+    void OnPlayerState(GameEvents.PlayerStateInfo _info)
+    {
+        // Stance changes drive UI only. Log real damage and the once-per-life vulnerability.
+        if (_info.reason == "damage" || _info.reason == "guard_vulnerability")
+        {
+            TelemetryLog.Write(TelemetryEvents.PLAYER_HEALTH, TelemetryPayload.PlayerHealth(_info));
+        }
     }
 
     void OnDeath(GameEvents.DeathInfo _info)

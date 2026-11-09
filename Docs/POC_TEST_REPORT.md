@@ -1,5 +1,11 @@
 # POC 검증
 
+- 가드/능력 개정은 컴파일 및 Edit-mode 저작/참조 확인만 수행했다. Play·테스트·입력 주입·스크린샷·게임플레이 실험은 실행하지 않았으며 새 버전은 사용자 미수용/미플레이다. 상세 현재 계약은 POC_STATUS.md·TECH_SPEC.md. 구형 자동 통합 시나리오는 폐기 규칙을 전제해 진입을 차단했다.
+- 아래 ba7b72a 성공 결과는 가드/체력/능력 개정에도 적용하지 않는다.
+
+- 아래 실행/자동 검사 결과는 사용자 직접 플레이 확인본 `ba7b72a`의 기록이다. `feature/mouse-aim`의 회전 조준 변경에 재검증 결과로 적용하지 않는다.
+- 마우스 조준 변경: Unity 6000.6.8f1 Editor의 script recompile_status=completed, failed=false, errors=[], compilationFailed=false 및 console status 오류0/경고0을 확인했다. Player.prefab의 눈/조준 마커와 ArenaPOC의 카메라는 Edit mode에서 저장했다. Play·테스트·입력 주입·화면 캡처·게임플레이 실험은 실행하지 않았다. 새 입력/360도 판정/사망 정리의 플레이 확인은 사용자 담당이다.
+
 - 환경: 기존 Unity 6000.6.8f1 Editor(PID 25044, Pipeline port 7802), URP 17.6.0, Input System 1.20.1, uGUI 2.6.0. 버전·패키지 교체나 별도 Unity 인스턴스 실행 없음.
 - 컴파일: 현재 오류 0 / 경고 0. 폐기 예정 객체 정렬 검색과 DEVELOPMENT_BUILD 전처리 경고는 공용 대체/DEBUG 변형으로 정리했다. ProjectValidation.Validate() 통과: 능력 정의 20, 패턴 7, 효과 슬롯 160, 빌드 씬/테이블 4개 일치, 새 Input System 설정 확인.
 - Play의 프레임 진행을 확인했다. 최종 통합 검사의 frameStart/frameEnd는 Artifacts/POC/integration-results.json 원본을 따른다. 화면 캡처만을 실행 증거로 삼지 않았다.
@@ -22,6 +28,6 @@
 - 자동 검사는 새 전투/고정 위치/강제 능력 지급/가속 시간 등 개발용 조작을 사용한다. 100목숨 검사는 8배 시간에서 수행했고 정상 게임의 부활 지연 테이블은 변경하지 않았다. 게임 플레이 난이도·완주 시간 측정으로 해석하면 안 된다.
 - 검사 중 발견해 수정한 문제: 효과 bounds 깊이, 리지드바디 보간 좌표와 평타 위치 불일치, 위치 초기화 때 접촉 잔존, 능력 해제 후 HUD의 사망 능력 ID 누락, 즉시 A01 자해, A15 이탈 시간, A19 Fall/Explosion 사인 혼동, 전체 돌진 경로의 동시 판정, 도달하기 어려운 발판 배치.
 - 전체 -projectSmoke 종료/풀/해금 시나리오 및 Test Runner는 실행하지 않았다. 테스트 asmdef는 추가하지 않았으며 POC 전용 스모크와 실제 Play 검사를 사용했다. 독립 실행 파일 빌드·Unity 6.3 에디터 실행도 미수행이다.
-- 사람 플레이 미수행: 자연스러운 5~8분 완주, 모든 위치에서의 패턴/연계 회피, 능력별 선호·자살 리롤·웃음/사인 이해, 두 명 이상 블라인드 평가는 남아 있다.
+- 기준 ba7b72a는 사용자가 직접 플레이했다. 자연스러운 5~8분 완주 측정, 모든 위치에서의 패턴/연계 회피, 능력별 선호·자살 리롤·웃음/사인 이해, 두 명 이상 블라인드 평가는 별도이며 남아 있다. 이번 마우스 조준 변경은 아직 플레이하지 않았다.
 
 산출물은 Artifacts/POC/의 integration-results/input-results/entry-results/boss-evasion-results/boss-links-results/ability-flaws-results JSON과 arena-final/victory/defeat/B01~B07-warning PNG다. 이 폴더는 로컬 검증 산출물이며 게임 자산은 Assets에 저장했다.
